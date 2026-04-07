@@ -119,9 +119,11 @@ src/
 │   │           └── actions.ts    # Builder server actions (getSiteForBuilder, saveSiteConfig)
 │   │
 │   └── site/[domain]/            # Public-facing sites (rendered from config)
-│       ├── layout.tsx            # Shared site layout (navbar + footer)
+│       ├── layout.tsx            # Shared site layout (dynamic navbar + footer)
 │       ├── page.tsx              # Home page (renders drag-and-drop sections)
 │       ├── data.ts               # Data fetching (getSiteByDomain, getProperty)
+│       ├── [...slug]/
+│       │   └── page.tsx          # Catch-all for custom pages (about-us, contact, etc.)
 │       ├── properties/
 │       │   ├── page.tsx          # Listing page (template-driven, real data)
 │       │   └── [propertyId]/
@@ -133,7 +135,8 @@ src/
 ├── components/
 │   ├── ui/                       # shadcn/ui components (Button, Dialog, Input, etc.)
 │   ├── builder/                  # Builder-specific components
-│   │   ├── builder.tsx           # Main builder with DnD, tabs, state management
+│   │   ├── builder.tsx           # Main builder with DnD, tabs, page management
+│   │   ├── page-manager.tsx      # Add page popover (presets + custom)
 │   │   ├── section-sidebar.tsx   # Draggable section type list
 │   │   ├── sortable-section.tsx  # Sortable canvas section wrapper
 │   │   ├── section-preview.tsx   # Section visual preview (applies styles)

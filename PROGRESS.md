@@ -143,7 +143,7 @@ Customizable settings:
 
 ---
 
-### 5. Public Site Rendering (NEW)
+### 5. Public Site Rendering
 **Files:** `src/app/site/[domain]/`, `src/components/site/`
 
 The builder configs are now rendered as real public websites that visitors can see.
@@ -157,11 +157,12 @@ The builder configs are now rendered as real public websites that visitors can s
 | URL | What it renders |
 |-----|----------------|
 | `/site/[domain]` | Home page — renders drag-and-drop sections as real website |
+| `/site/[domain]/[...slug]` | Any custom page (about-us, contact, terms, etc.) by slug from config |
 | `/site/[domain]/properties` | Listing page — all properties styled with listing template settings |
 | `/site/[domain]/properties/[id]` | Property detail — gallery, description, amenities, calendar, booking form |
 | `/site/[domain]/checkout/[id]` | Checkout — guest info form, booking summary |
 
-**Shared layout** (`layout.tsx`): Every public site page has a sticky navbar with the site name + "Properties" link + "Book Now" button, and a footer. Colors use the site's theme.
+**Shared layout** (`layout.tsx`): Every public site page has a sticky navbar with the site name, links to all custom pages, a "Properties" link, and a "Book Now" button. The footer shows copyright + links to Terms and Privacy pages if they exist. Colors use the site's theme.
 
 **Section renderers** (`src/components/site/sections/`): 8 production-quality components that render each section type as real, styled HTML:
 - **Hero** — full-width with background image support, overlay, and CTA linking to properties
@@ -202,6 +203,33 @@ Old site configs had a flat `sections[]` array. New configs have `pages[]` + `te
 
 ---
 
+### 8. Multi-Page Builder
+**Files:** `src/components/builder/page-manager.tsx`, `src/components/builder/builder.tsx`, `src/app/site/[domain]/[...slug]/page.tsx`
+
+Owners can now create unlimited drag-and-drop pages beyond just "Home".
+
+**How it works:**
+- The builder tab bar shows all pages from `config.pages`, plus a **"+ Add Page"** button.
+- Clicking "+ Add Page" opens a popover with:
+  - **Presets:** Contact (hero + contact form + map), About Us (hero + values + testimonials), Terms & Conditions, Privacy Policy — each pre-populated with relevant sections.
+  - **Blank Page:** empty canvas.
+  - **Custom page:** enter any name, slug is auto-generated.
+- Already-added presets show "Added" and are disabled (no duplicates).
+- Each non-Home page tab has a **kebab menu** (three dots) with Rename and Delete. Home page cannot be deleted.
+- Renaming happens inline — clicking Rename turns the tab into an editable input.
+- All pages are drag-and-drop with the same section types, styles, and editor as Home.
+
+**Public rendering:**
+- Custom pages render via a catch-all route at `/site/[domain]/[...slug]`.
+- The catch-all matches the page slug from the config and renders its sections using the same `SectionRenderer`.
+- Specific routes (`/properties`, `/checkout`) take priority over the catch-all (Next.js route resolution).
+
+**Navbar/Footer:**
+- The public site navbar automatically lists all custom pages as links.
+- The footer shows Terms and Privacy links if those pages exist.
+
+---
+
 ## What's NOT Built Yet
 
 ### High Priority (Next Steps)
@@ -217,47 +245,46 @@ Old site configs had a flat `sections[]` array. New configs have `pages[]` + `te
    - Server action to create a `Booking` record with status PENDING.
    - Date validation (check availability, prevent double bookings).
    - Confirmation page / success state after booking.
-   - Owner sees bookings in dashboard.
+   - Owner sees bookings in dashboard with status management (confirm/cancel).
    - No payment for MVP — just reservation.
 
-3. **Authentication** — Replace the hardcoded demo user with real auth.
+3. **Availability & Calendar** — Let owners manage property availability.
+   - Calendar UI in dashboard to block/unblock dates.
+   - Custom pricing per date (override base price).
+   - Public calendar on detail page reads from `Availability` model.
+   - Interactive date picker on detail/checkout pages (currently static "Select date" text).
+   - Currently the calendar shows hardcoded sample blocked dates.
+
+4. **Authentication** — Replace the hardcoded demo user with real auth.
    - Plan: NextAuth.js (Auth.js) with email/password + optional Google OAuth.
    - Login, register, protected routes.
    - Middleware to protect `/dashboard` routes.
 
-4. **Availability & Calendar** — Let owners manage property availability.
-   - Calendar UI in dashboard to block/unblock dates.
-   - Custom pricing per date (override base price).
-   - Public calendar on detail page reads from `Availability` model.
-   - Currently the calendar shows hardcoded sample blocked dates.
-
 ### Medium Priority
 
-5. **Publish/unpublish** — Toggle the `published` flag. Only published sites should be publicly visible. Currently all sites render regardless of status.
+5. **Theme system** — The `SiteTheme` (primary color, font family) exists in config but isn't applied globally to public site pages yet. Need a theme settings panel in the builder with font picker and global color scheme.
 
-6. **Multiple custom pages** — The config supports multiple pages, but there's no UI to add/rename/delete pages yet. Currently only "Home" exists.
+6. **Publish/unpublish** — Toggle the `published` flag. Only published sites should be publicly visible. Currently all sites render regardless of status.
 
-7. **Theme system** — The `SiteTheme` (primary color, font family) exists in config but isn't applied globally to public site pages yet. Need a theme settings panel in the builder.
+7. **Image upload** — Currently property images reference local paths. Need Cloudinary or S3 integration for real image uploads with drag-and-drop.
 
-8. **Interactive date picker on detail/checkout** — Currently the booking form shows static "Select date" text. Need a real date picker that checks availability and calculates total price.
-
-9. **Image upload** — Currently property images reference local paths. Need Cloudinary or S3 integration for real image uploads.
+8. **Responsive public site** — Public site pages use responsive layouts but could be improved, especially the navbar (needs a mobile hamburger menu for sites with many pages).
 
 ### Lower Priority
 
-10. **Custom domains** — Currently sites use `/site/[subdomain]`. Add support for `[subdomain].bookwise.dev` and custom domains.
+9. **Custom domains** — Currently sites use `/site/[subdomain]`. Add support for `[subdomain].bookwise.dev` and custom domains.
 
-11. **Payments** — Stripe or similar integration for actual booking payments.
+10. **Payments** — Stripe or similar integration for actual booking payments.
 
-12. **Analytics** — Views, bookings, revenue per site.
+11. **Analytics** — Views, bookings, revenue per site dashboard.
 
-13. **Email notifications** — Booking confirmations, reminders.
+12. **Email notifications** — Booking confirmations, reminders to owners and guests.
 
-14. **SEO** — Per-page meta tags, Open Graph images. (Basic metadata already works via `generateMetadata` on public site pages.)
+13. **SEO** — Per-page meta tags, Open Graph images. (Basic metadata already works via `generateMetadata` on public site pages.)
 
-15. **Mobile responsive builder** — The builder itself is desktop-only. Public site pages use responsive layouts but could be improved.
+14. **Reviews system** — Currently testimonials are hardcoded in builder sections. Need a real reviews model where guests can leave reviews after bookings.
 
-16. **Reviews system** — Currently testimonials are hardcoded in builder sections. Need a real reviews model where guests can leave reviews after bookings.
+15. **Mobile builder** — The builder itself is desktop-only. Consider a simplified mobile editing experience.
 
 ---
 
