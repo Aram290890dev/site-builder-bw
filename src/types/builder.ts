@@ -1,3 +1,5 @@
+/* ─── Section Types (for drag-and-drop pages) ─── */
+
 export type SectionType =
   | "hero"
   | "propertyGrid"
@@ -26,6 +28,73 @@ export interface Section {
   style?: SectionStyle;
 }
 
+/* ─── Page Types ─── */
+
+export interface BuilderPage {
+  id: string;
+  name: string;
+  slug: string;
+  sections: Section[];
+}
+
+/* ─── Template Settings (for auto-generated pages) ─── */
+
+export interface ListingPageSettings {
+  layout: "grid" | "list";
+  columns: 2 | 3 | 4;
+  cardStyle: "minimal" | "bordered" | "shadow" | "elevated";
+  cardImageAspect: "square" | "landscape" | "portrait";
+  cardImageRadius: "none" | "sm" | "md" | "lg" | "full";
+  cardRadius: "none" | "sm" | "md" | "lg";
+  showPrice: boolean;
+  showLocation: boolean;
+  showRating: boolean;
+  showAmenities: boolean;
+  showGuests: boolean;
+  cardBgColor: string;
+  cardTextColor: string;
+  cardBorderColor: string;
+  accentColor: string;
+  pageBgColor: string;
+  pageTitle: string;
+  pageSubtitle: string;
+  hoverEffect: "none" | "lift" | "scale" | "glow";
+  imageOverlay: boolean;
+  pricePosition: "top-right" | "bottom" | "badge";
+}
+
+export interface DetailPageSettings {
+  galleryStyle: "grid" | "slider" | "masonry";
+  galleryImageRadius: "none" | "sm" | "md" | "lg";
+  galleryColumns: 2 | 3 | 4;
+  showMap: boolean;
+  showAmenities: boolean;
+  showDescription: boolean;
+  showReviews: boolean;
+  calendarStyle: "inline" | "popup";
+  calendarAccentColor: string;
+  calendarBlockedColor: string;
+  bookingFormStyle: "card" | "inline" | "sidebar";
+  sectionOrder: string[];
+  pageBgColor: string;
+  textColor: string;
+  accentColor: string;
+  headingFont: "default" | "serif" | "mono";
+  cardRadius: "none" | "sm" | "md" | "lg";
+  imageAspect: "auto" | "landscape" | "portrait" | "square";
+}
+
+export interface CheckoutPageSettings {
+  style: "single-page" | "multi-step";
+  accentColor: string;
+  bgColor: string;
+  cardRadius: "none" | "sm" | "md" | "lg";
+  showOrderSummary: boolean;
+  showPropertyImage: boolean;
+}
+
+/* ─── Site Config ─── */
+
 export interface SiteTheme {
   primaryColor: string;
   fontFamily: string;
@@ -33,8 +102,79 @@ export interface SiteTheme {
 
 export interface SiteConfig {
   theme: SiteTheme;
-  sections: Section[];
+  pages: BuilderPage[];
+  templates: {
+    listing: ListingPageSettings;
+    detail: DetailPageSettings;
+    checkout: CheckoutPageSettings;
+  };
+  /** @deprecated Use pages[0].sections instead */
+  sections?: Section[];
 }
+
+/* ─── Builder Page Type (for tab selector) ─── */
+
+export type BuilderTab =
+  | { type: "page"; pageId: string }
+  | { type: "template"; template: "listing" | "detail" | "checkout" };
+
+/* ─── Defaults ─── */
+
+export const DEFAULT_LISTING_SETTINGS: ListingPageSettings = {
+  layout: "grid",
+  columns: 3,
+  cardStyle: "shadow",
+  cardImageAspect: "landscape",
+  cardImageRadius: "md",
+  cardRadius: "lg",
+  showPrice: true,
+  showLocation: true,
+  showRating: true,
+  showAmenities: true,
+  showGuests: true,
+  cardBgColor: "#ffffff",
+  cardTextColor: "#171717",
+  cardBorderColor: "#e5e5e5",
+  accentColor: "#4f46e5",
+  pageBgColor: "#f9fafb",
+  pageTitle: "Our Properties",
+  pageSubtitle: "Find your perfect stay",
+  hoverEffect: "lift",
+  imageOverlay: false,
+  pricePosition: "bottom",
+};
+
+export const DEFAULT_DETAIL_SETTINGS: DetailPageSettings = {
+  galleryStyle: "grid",
+  galleryImageRadius: "md",
+  galleryColumns: 3,
+  showMap: true,
+  showAmenities: true,
+  showDescription: true,
+  showReviews: true,
+  calendarStyle: "inline",
+  calendarAccentColor: "#4f46e5",
+  calendarBlockedColor: "#fecaca",
+  bookingFormStyle: "sidebar",
+  sectionOrder: ["gallery", "description", "amenities", "calendar", "map", "reviews"],
+  pageBgColor: "#ffffff",
+  textColor: "#171717",
+  accentColor: "#4f46e5",
+  headingFont: "default",
+  cardRadius: "lg",
+  imageAspect: "landscape",
+};
+
+export const DEFAULT_CHECKOUT_SETTINGS: CheckoutPageSettings = {
+  style: "single-page",
+  accentColor: "#4f46e5",
+  bgColor: "#f9fafb",
+  cardRadius: "lg",
+  showOrderSummary: true,
+  showPropertyImage: true,
+};
+
+/* ─── Section Definitions ─── */
 
 export const SECTION_DEFINITIONS: Record<
   SectionType,

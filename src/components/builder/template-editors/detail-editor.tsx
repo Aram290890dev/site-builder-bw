@@ -1,0 +1,315 @@
+"use client";
+
+import type { DetailPageSettings } from "@/types/builder";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { MapPin, Star, Wifi, Car, Waves, Wind } from "lucide-react";
+
+interface Props {
+  settings: DetailPageSettings;
+  onUpdate: (updates: Partial<DetailPageSettings>) => void;
+}
+
+export function DetailTemplateEditor({ settings, onUpdate }: Props) {
+  return (
+    <div className="flex flex-1 overflow-hidden">
+      {/* Settings Panel */}
+      <div className="w-80 shrink-0 overflow-y-auto border-r border-neutral-200 bg-white p-4 space-y-5">
+        <div>
+          <h3 className="text-sm font-semibold">Property Detail Page</h3>
+          <p className="text-xs text-neutral-400">Customize the individual property view</p>
+        </div>
+
+        <Separator />
+
+        {/* Gallery */}
+        <div className="space-y-3">
+          <Label className="text-xs text-neutral-500 font-semibold">Gallery</Label>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-neutral-500">Style</Label>
+            <div className="flex gap-2">
+              {(["grid", "slider", "masonry"] as const).map((v) => (
+                <button key={v} onClick={() => onUpdate({ galleryStyle: v })} className={`flex-1 rounded-lg border py-1.5 text-xs font-medium capitalize transition-colors ${settings.galleryStyle === v ? "border-indigo-300 bg-indigo-50 text-indigo-700" : "border-neutral-200 text-neutral-500"}`}>
+                  {v}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-neutral-500">Image Corners</Label>
+            <div className="flex gap-2">
+              {(["none", "sm", "md", "lg"] as const).map((v) => (
+                <button key={v} onClick={() => onUpdate({ galleryImageRadius: v })} className={`flex-1 rounded-lg border py-1.5 text-[10px] font-medium uppercase transition-colors ${settings.galleryImageRadius === v ? "border-indigo-300 bg-indigo-50 text-indigo-700" : "border-neutral-200 text-neutral-500"}`}>
+                  {v}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-neutral-500">Columns</Label>
+            <div className="flex gap-2">
+              {([2, 3, 4] as const).map((n) => (
+                <button key={n} onClick={() => onUpdate({ galleryColumns: n })} className={`flex-1 rounded-lg border py-1.5 text-xs font-medium transition-colors ${settings.galleryColumns === n ? "border-indigo-300 bg-indigo-50 text-indigo-700" : "border-neutral-200 text-neutral-500"}`}>
+                  {n}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-neutral-500">Image Aspect</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {(["auto", "landscape", "portrait", "square"] as const).map((v) => (
+                <button key={v} onClick={() => onUpdate({ imageAspect: v })} className={`rounded-lg border py-1.5 text-xs font-medium capitalize transition-colors ${settings.imageAspect === v ? "border-indigo-300 bg-indigo-50 text-indigo-700" : "border-neutral-200 text-neutral-500"}`}>
+                  {v}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Sections */}
+        <div className="space-y-3">
+          <Label className="text-xs text-neutral-500 font-semibold">Show / Hide Sections</Label>
+          {([
+            { key: "showDescription", label: "Description" },
+            { key: "showAmenities", label: "Amenities" },
+            { key: "showMap", label: "Map" },
+            { key: "showReviews", label: "Reviews" },
+          ] as const).map(({ key, label }) => (
+            <label key={key} className="flex items-center justify-between">
+              <span className="text-xs text-neutral-600">{label}</span>
+              <input type="checkbox" checked={settings[key]} onChange={(e) => onUpdate({ [key]: e.target.checked })} className="h-4 w-4 rounded border-neutral-300 accent-indigo-600" />
+            </label>
+          ))}
+        </div>
+
+        <Separator />
+
+        {/* Booking Form */}
+        <div className="space-y-3">
+          <Label className="text-xs text-neutral-500 font-semibold">Booking</Label>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-neutral-500">Calendar Style</Label>
+            <div className="flex gap-2">
+              {(["inline", "popup"] as const).map((v) => (
+                <button key={v} onClick={() => onUpdate({ calendarStyle: v })} className={`flex-1 rounded-lg border py-1.5 text-xs font-medium capitalize transition-colors ${settings.calendarStyle === v ? "border-indigo-300 bg-indigo-50 text-indigo-700" : "border-neutral-200 text-neutral-500"}`}>
+                  {v}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-neutral-500">Booking Form Layout</Label>
+            <div className="flex gap-2">
+              {(["sidebar", "card", "inline"] as const).map((v) => (
+                <button key={v} onClick={() => onUpdate({ bookingFormStyle: v })} className={`flex-1 rounded-lg border py-1.5 text-xs font-medium capitalize transition-colors ${settings.bookingFormStyle === v ? "border-indigo-300 bg-indigo-50 text-indigo-700" : "border-neutral-200 text-neutral-500"}`}>
+                  {v}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Typography */}
+        <div className="space-y-3">
+          <Label className="text-xs text-neutral-500 font-semibold">Typography</Label>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-neutral-500">Heading Font</Label>
+            <div className="flex gap-2">
+              {(["default", "serif", "mono"] as const).map((v) => (
+                <button key={v} onClick={() => onUpdate({ headingFont: v })} className={`flex-1 rounded-lg border py-1.5 text-xs font-medium capitalize transition-colors ${settings.headingFont === v ? "border-indigo-300 bg-indigo-50 text-indigo-700" : "border-neutral-200 text-neutral-500"}`}>
+                  {v}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-neutral-500">Card Corners</Label>
+            <div className="flex gap-2">
+              {(["none", "sm", "md", "lg"] as const).map((v) => (
+                <button key={v} onClick={() => onUpdate({ cardRadius: v })} className={`flex-1 rounded-lg border py-1.5 text-[10px] font-medium uppercase transition-colors ${settings.cardRadius === v ? "border-indigo-300 bg-indigo-50 text-indigo-700" : "border-neutral-200 text-neutral-500"}`}>
+                  {v}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Colors */}
+        <div className="space-y-3">
+          <Label className="text-xs text-neutral-500 font-semibold">Colors</Label>
+          {([
+            { key: "pageBgColor", label: "Page Background" },
+            { key: "textColor", label: "Text" },
+            { key: "accentColor", label: "Accent / Buttons" },
+            { key: "calendarAccentColor", label: "Calendar Accent" },
+            { key: "calendarBlockedColor", label: "Blocked Dates" },
+          ] as const).map(({ key, label }) => (
+            <div key={key} className="flex items-center gap-2">
+              <input type="color" value={settings[key]} onChange={(e) => onUpdate({ [key]: e.target.value })} className="h-7 w-7 cursor-pointer rounded border border-neutral-200" />
+              <span className="flex-1 text-xs text-neutral-600">{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Live Preview */}
+      <div className="flex-1 overflow-y-auto p-8" style={{ backgroundColor: settings.pageBgColor }}>
+        <div className="mx-auto max-w-4xl">
+          <DetailPreview settings={settings} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const RADIUS_MAP: Record<string, string> = { none: "0", sm: "0.25rem", md: "0.5rem", lg: "0.75rem" };
+const ASPECT_MAP: Record<string, string> = { auto: "auto", landscape: "16/10", portrait: "3/4", square: "1/1" };
+const FONT_MAP: Record<string, string> = { default: "inherit", serif: "Georgia, serif", mono: "ui-monospace, monospace" };
+
+function DetailPreview({ settings }: { settings: DetailPageSettings }) {
+  const radius = RADIUS_MAP[settings.cardRadius] ?? "0.75rem";
+  const imgRadius = RADIUS_MAP[settings.galleryImageRadius] ?? "0.5rem";
+  const headingStyle: React.CSSProperties = { fontFamily: FONT_MAP[settings.headingFont], color: settings.textColor };
+
+  return (
+    <div className="space-y-8">
+      {/* Gallery */}
+      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${settings.galleryColumns}, 1fr)` }}>
+        {Array.from({ length: settings.galleryColumns + 1 }).map((_, i) => (
+          <div
+            key={i}
+            className="flex items-center justify-center bg-neutral-200 text-xs text-neutral-400"
+            style={{
+              borderRadius: imgRadius,
+              aspectRatio: ASPECT_MAP[settings.imageAspect],
+              gridColumn: i === 0 ? `span ${Math.min(2, settings.galleryColumns)}` : undefined,
+              gridRow: i === 0 ? "span 2" : undefined,
+            }}
+          >
+            Photo {i + 1}
+          </div>
+        ))}
+      </div>
+
+      <div className={settings.bookingFormStyle === "sidebar" ? "grid grid-cols-3 gap-8" : "space-y-8"}>
+        {/* Main Content */}
+        <div className={settings.bookingFormStyle === "sidebar" ? "col-span-2 space-y-6" : "space-y-6"}>
+          {/* Title */}
+          <div>
+            <h1 className="text-2xl font-bold" style={headingStyle}>The Clifftop Villa</h1>
+            <div className="mt-1 flex items-center gap-3 text-sm" style={{ color: `${settings.textColor}99` }}>
+              <span className="flex items-center gap-1"><MapPin className="size-3.5" />Mykonos, Greece</span>
+              <span className="flex items-center gap-1"><Star className="size-3.5 fill-amber-400 text-amber-400" />4.9</span>
+              <span>8 guests</span>
+            </div>
+          </div>
+
+          {/* Description */}
+          {settings.showDescription && (
+            <div className="rounded-xl p-5" style={{ backgroundColor: `${settings.textColor}08`, borderRadius: radius }}>
+              <h2 className="text-lg font-semibold mb-2" style={headingStyle}>About this property</h2>
+              <p className="text-sm leading-relaxed" style={{ color: `${settings.textColor}cc` }}>
+                A stunning 4-bedroom villa perched on the cliffs of Mykonos with panoramic Aegean views, infinity pool, and private beach access. Perfect for families and groups looking for a luxury Mediterranean escape.
+              </p>
+            </div>
+          )}
+
+          {/* Amenities */}
+          {settings.showAmenities && (
+            <div>
+              <h2 className="text-lg font-semibold mb-3" style={headingStyle}>Amenities</h2>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { icon: Waves, label: "Pool" },
+                  { icon: Wifi, label: "WiFi" },
+                  { icon: Car, label: "Parking" },
+                  { icon: Wind, label: "AC" },
+                ].map(({ icon: Icon, label }) => (
+                  <div key={label} className="flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-sm" style={{ borderRadius: radius, color: settings.textColor }}>
+                    <Icon className="size-4" style={{ color: settings.accentColor }} />
+                    {label}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Calendar */}
+          {settings.calendarStyle === "inline" && (
+            <div>
+              <h2 className="text-lg font-semibold mb-3" style={headingStyle}>Availability</h2>
+              <div className="rounded-xl border border-neutral-200 p-4" style={{ borderRadius: radius }}>
+                <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
+                    <div key={d} className="py-1 font-medium" style={{ color: `${settings.textColor}80` }}>{d}</div>
+                  ))}
+                  {Array.from({ length: 28 }).map((_, i) => {
+                    const blocked = [5, 6, 7, 15, 16].includes(i);
+                    const selected = [10, 11, 12].includes(i);
+                    return (
+                      <div
+                        key={i}
+                        className="flex h-8 items-center justify-center rounded-md text-xs"
+                        style={{
+                          backgroundColor: selected ? settings.calendarAccentColor : blocked ? settings.calendarBlockedColor : "transparent",
+                          color: selected ? "#fff" : blocked ? "#dc2626" : settings.textColor,
+                          opacity: blocked ? 0.7 : 1,
+                        }}
+                      >
+                        {i + 1}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Map */}
+          {settings.showMap && (
+            <div>
+              <h2 className="text-lg font-semibold mb-3" style={headingStyle}>Location</h2>
+              <div className="flex h-48 items-center justify-center rounded-xl bg-neutral-100" style={{ borderRadius: radius }}>
+                <MapPin className="size-8 text-neutral-300" />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Booking Sidebar / Card */}
+        <div className={settings.bookingFormStyle === "sidebar" ? "" : settings.bookingFormStyle === "card" ? "max-w-sm mx-auto" : ""}>
+          <div className="sticky top-4 rounded-xl border border-neutral-200 bg-white p-5 space-y-4" style={{ borderRadius: radius }}>
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-bold" style={{ color: settings.textColor }}>€450</span>
+              <span className="text-sm" style={{ color: `${settings.textColor}80` }}>/night</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-lg border border-neutral-200 px-3 py-2">
+                <div className="text-[10px] font-medium uppercase" style={{ color: `${settings.textColor}60` }}>Check-in</div>
+                <div className="text-xs" style={{ color: settings.textColor }}>Select date</div>
+              </div>
+              <div className="rounded-lg border border-neutral-200 px-3 py-2">
+                <div className="text-[10px] font-medium uppercase" style={{ color: `${settings.textColor}60` }}>Check-out</div>
+                <div className="text-xs" style={{ color: settings.textColor }}>Select date</div>
+              </div>
+            </div>
+            <div className="rounded-lg border border-neutral-200 px-3 py-2">
+              <div className="text-[10px] font-medium uppercase" style={{ color: `${settings.textColor}60` }}>Guests</div>
+              <div className="text-xs" style={{ color: settings.textColor }}>1 guest</div>
+            </div>
+            <button className="w-full rounded-lg py-2.5 text-sm font-semibold text-white" style={{ backgroundColor: settings.accentColor, borderRadius: radius }}>
+              Book Now
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

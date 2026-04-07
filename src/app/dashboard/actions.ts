@@ -3,6 +3,11 @@
 import { prisma } from "@/lib/db";
 import { DEMO_USER_EMAIL } from "@/lib/constants";
 import { revalidatePath } from "next/cache";
+import {
+  DEFAULT_LISTING_SETTINGS,
+  DEFAULT_DETAIL_SETTINGS,
+  DEFAULT_CHECKOUT_SETTINGS,
+} from "@/types/builder";
 
 export async function getSites() {
   const user = await prisma.user.findUnique({
@@ -42,13 +47,13 @@ export async function createSite(formData: FormData) {
     return { error: "Subdomain is already taken" };
   }
 
-  await prisma.site.create({
-    data: {
-      name,
-      subdomain,
-      ownerId: user.id,
-      config: {
-        theme: { primaryColor: "#4f46e5", fontFamily: "Inter" },
+  const config = {
+    theme: { primaryColor: "#4f46e5", fontFamily: "Inter" },
+    pages: [
+      {
+        id: "home",
+        name: "Home",
+        slug: "/",
         sections: [
           {
             id: "hero-1",
@@ -66,6 +71,20 @@ export async function createSite(formData: FormData) {
           },
         ],
       },
+    ],
+    templates: {
+      listing: DEFAULT_LISTING_SETTINGS,
+      detail: DEFAULT_DETAIL_SETTINGS,
+      checkout: DEFAULT_CHECKOUT_SETTINGS,
+    },
+  };
+
+  await prisma.site.create({
+    data: {
+      name,
+      subdomain,
+      ownerId: user.id,
+      config: JSON.parse(JSON.stringify(config)),
     },
   });
 
