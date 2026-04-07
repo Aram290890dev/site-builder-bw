@@ -9,7 +9,7 @@ A complete guide to every technology used in this project, what it does, and why
 ### Next.js 16 (React 19)
 - **What:** Full-stack React framework with server-side rendering, static generation, API routes, and file-based routing.
 - **Why:** We use the **App Router** (`src/app/`) which gives us Server Components by default (fast, zero JS shipped to browser), Server Actions (call backend functions directly from components), and file-based routing (create a folder = create a route). React 19 brings improved performance and the `use` hook.
-- **Key files:** `src/app/layout.tsx` (root layout), `src/app/page.tsx` (landing page), `src/app/dashboard/` (owner dashboard).
+- **Key files:** `src/app/layout.tsx` (root layout), `src/app/page.tsx` (landing page), `src/app/dashboard/` (owner dashboard), `src/app/site/[domain]/` (public sites).
 
 ### TypeScript
 - **What:** Typed superset of JavaScript.
@@ -62,7 +62,7 @@ A complete guide to every technology used in this project, what it does, and why
   - `postinstall` script runs `prisma generate` automatically after `npm install`.
 - **Key files:**
   - `prisma/schema.prisma` — database schema (User, Site, Property, Booking, Availability)
-  - `prisma/seed.ts` — seed script with demo data
+  - `prisma/seed.ts` — seed script with demo data (1 user, 1 site, 3 properties)
   - `src/lib/db/index.ts` — Prisma client singleton
   - `prisma.config.ts` — Prisma config file for the connection URL
 
@@ -108,15 +108,27 @@ src/
 │   ├── page.tsx                  # Marketing landing page
 │   ├── layout.tsx                # Root layout (html, body, fonts)
 │   ├── globals.css               # Tailwind imports + theme tokens
-│   └── dashboard/                # Owner dashboard
-│       ├── page.tsx              # Site list
-│       ├── layout.tsx            # Dashboard layout (header)
-│       ├── actions.ts            # Server actions (getSites, createSite, deleteSite)
-│       ├── create-site-dialog.tsx# New site dialog
-│       └── [siteId]/
-│           └── builder/
-│               ├── page.tsx      # Builder entry (server component, fetches config)
-│               └── actions.ts    # Builder server actions (getSiteForBuilder, saveSiteConfig)
+│   ├── dashboard/                # Owner dashboard
+│   │   ├── page.tsx              # Site list (Edit + View Site buttons)
+│   │   ├── layout.tsx            # Dashboard layout (header)
+│   │   ├── actions.ts            # Server actions (getSites, createSite, deleteSite)
+│   │   ├── create-site-dialog.tsx# New site dialog
+│   │   └── [siteId]/
+│   │       └── builder/
+│   │           ├── page.tsx      # Builder entry (server component, fetches config)
+│   │           └── actions.ts    # Builder server actions (getSiteForBuilder, saveSiteConfig)
+│   │
+│   └── site/[domain]/            # Public-facing sites (rendered from config)
+│       ├── layout.tsx            # Shared site layout (navbar + footer)
+│       ├── page.tsx              # Home page (renders drag-and-drop sections)
+│       ├── data.ts               # Data fetching (getSiteByDomain, getProperty)
+│       ├── properties/
+│       │   ├── page.tsx          # Listing page (template-driven, real data)
+│       │   └── [propertyId]/
+│       │       └── page.tsx      # Property detail page (gallery, amenities, calendar, booking)
+│       └── checkout/
+│           └── [propertyId]/
+│               └── page.tsx      # Checkout page (guest form, order summary)
 │
 ├── components/
 │   ├── ui/                       # shadcn/ui components (Button, Dialog, Input, etc.)
@@ -130,6 +142,17 @@ src/
 │   │       ├── listing-editor.tsx
 │   │       ├── detail-editor.tsx
 │   │       └── checkout-editor.tsx
+│   ├── site/                     # Public site renderers
+│   │   └── sections/             # Production section components
+│   │       ├── section-renderer.tsx  # Routes section type → component
+│   │       ├── hero.tsx
+│   │       ├── property-grid.tsx
+│   │       ├── gallery.tsx
+│   │       ├── testimonials.tsx
+│   │       ├── contact.tsx       # "use client" (has form onSubmit)
+│   │       ├── map-section.tsx
+│   │       ├── features.tsx
+│   │       └── cta.tsx
 │   └── shared/                   # (Future) shared components
 │
 ├── lib/
@@ -146,13 +169,26 @@ src/
 
 ---
 
+## Key Architectural Patterns
+
+### Builder vs. Public Site (two renderers, one config)
+The builder components (`src/components/builder/`) and public site components (`src/components/site/`) are **completely separate codebases** that both read the same JSON config. The builder shows editing UI (drag handles, sidebars, editors). The public site renders production HTML with no editing chrome. Think Google Docs vs. exported PDF.
+
+### Server Components by default
+Public site pages (`src/app/site/`) are all Server Components — they fetch data and render on the server. Only interactive pieces (like the contact form) use `"use client"`. This means zero JavaScript shipped to the browser for most pages.
+
+### Config migration
+When loading a site, `migrateConfig()` detects old config formats and upgrades them. This ensures sites created before multi-page support still work.
+
+---
+
 ## Commands
 
 | Command | What it does |
 |---------|-------------|
 | `npm run dev` | Start dev server on localhost:3000 |
 | `npm run build` | Production build (also catches type errors) |
-| `npm run db:seed` | Seed database with demo user, site, and property |
+| `npm run db:seed` | Seed database with demo user, site, and 3 properties |
 | `npx prisma generate` | Regenerate Prisma client after schema changes |
 | `npx prisma db push` | Push schema changes to the database |
 | `npx prisma studio` | Open visual database browser |

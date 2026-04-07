@@ -19,6 +19,7 @@ export default async function BuilderPage({
     <Builder
       siteId={site.id}
       siteName={site.name}
+      siteSubdomain={site.subdomain}
       initialConfig={config}
     />
   );

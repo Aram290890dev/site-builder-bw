@@ -42,7 +42,7 @@ import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
   Save,
-  Eye,
+  ExternalLink,
   Loader2,
   Home,
   LayoutGrid,
@@ -56,10 +56,11 @@ const SIDEBAR_PREFIX = "sidebar-";
 interface BuilderProps {
   siteId: string;
   siteName: string;
+  siteSubdomain: string;
   initialConfig: SiteConfig;
 }
 
-export function Builder({ siteId, siteName, initialConfig }: BuilderProps) {
+export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: BuilderProps) {
   const [config, setConfig] = useState<SiteConfig>(initialConfig);
   const [activeTab, setActiveTab] = useState<BuilderTab>({
     type: "page",
@@ -308,10 +309,16 @@ export function Builder({ siteId, siteName, initialConfig }: BuilderProps) {
           <span className="text-sm font-medium">{siteName}</span>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled>
-            <Eye className="mr-1.5 size-3.5" />
-            Preview
-          </Button>
+          <a
+            href={`/site/${siteSubdomain}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button variant="outline" size="sm">
+              <ExternalLink className="mr-1.5 size-3.5" />
+              View Site
+            </Button>
+          </a>
           <Button
             size="sm"
             className="bg-indigo-600 text-white hover:bg-indigo-700"

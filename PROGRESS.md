@@ -39,10 +39,10 @@ The dashboard at `/dashboard` where owners manage their sites.
 - Uses a hardcoded demo user (`demo@bookwise.dev`) since auth isn't built yet.
 - Server action `getSites()` fetches all sites for this demo user.
 - Each site shows as a card with name, subdomain, property count, booking count, and published status.
+- Each card has two buttons: **"Edit"** (opens the builder) and **"View Site"** (opens the public site in a new tab).
 - "Create New Site" button opens a dialog where you enter a name → subdomain is auto-generated (slugified name).
 - Server action `createSite()` creates the site in the database with a default config (home page with hero + property grid sections, plus default template settings for listing/detail/checkout).
 - Server action `deleteSite()` deletes a site.
-- Clicking "Edit" on a site card navigates to `/dashboard/[siteId]/builder`.
 
 ---
 
@@ -71,6 +71,8 @@ The builder at `/dashboard/[siteId]/builder` is the core feature.
 }
 ```
 
+**Builder toolbar:** Has a "View Site" button that opens the public site in a new tab, plus a "Save" button that persists the config to the database.
+
 **Drag & Drop (Home page tab):**
 - Left sidebar lists 8 section types: Hero, Property Grid, Gallery, Testimonials, Contact, Map, Features, CTA.
 - Each section type can be dragged from the sidebar onto the canvas (or clicked to append).
@@ -79,7 +81,6 @@ The builder at `/dashboard/[siteId]/builder` is the core feature.
   - **Content tab:** Edit text fields, data specific to each section type.
   - **Style tab:** Background color, text color, accent color, text alignment, padding (sm/md/lg/xl), corner radius, background image URL, and overlay opacity.
 - All style changes apply live to the section preview on the canvas.
-- "Save" button persists the config to the database.
 
 **Section types and their editable content:**
 | Section | Content Fields |
@@ -115,8 +116,6 @@ Customizable settings (all saved in config, all update the live preview):
 - **Colors:** Page background, Card background, Card text, Card border, Accent/button color
 - **Page title and subtitle:** Editable text
 
-The preview renders 6 sample property cards with realistic data that updates live.
-
 #### Property Detail Page Template
 **File:** `src/components/builder/template-editors/detail-editor.tsx`
 
@@ -133,8 +132,6 @@ Customizable settings:
 - **Card corners:** None, Small, Medium, Large
 - **Colors:** Page background, Text, Accent/buttons, Calendar accent, Blocked dates
 
-The preview shows a full property detail page with gallery, title, description, amenities, calendar, map placeholder, and booking form.
-
 #### Checkout Page Template
 **File:** `src/components/builder/template-editors/checkout-editor.tsx`
 
@@ -144,11 +141,48 @@ Customizable settings:
 - **Show/hide:** Order summary, Property image in summary
 - **Colors:** Background, Accent/button color
 
-The preview shows the guest info form and booking summary with live style updates.
+---
+
+### 5. Public Site Rendering (NEW)
+**Files:** `src/app/site/[domain]/`, `src/components/site/`
+
+The builder configs are now rendered as real public websites that visitors can see.
+
+**How it works:**
+1. Visitor goes to `/site/[subdomain]` (e.g., `/site/astra-villas`)
+2. Server component looks up the site by subdomain in the database
+3. Reads the JSON config and renders it as production HTML — no builder UI, no editing chrome
+
+**Routes:**
+| URL | What it renders |
+|-----|----------------|
+| `/site/[domain]` | Home page — renders drag-and-drop sections as real website |
+| `/site/[domain]/properties` | Listing page — all properties styled with listing template settings |
+| `/site/[domain]/properties/[id]` | Property detail — gallery, description, amenities, calendar, booking form |
+| `/site/[domain]/checkout/[id]` | Checkout — guest info form, booking summary |
+
+**Shared layout** (`layout.tsx`): Every public site page has a sticky navbar with the site name + "Properties" link + "Book Now" button, and a footer. Colors use the site's theme.
+
+**Section renderers** (`src/components/site/sections/`): 8 production-quality components that render each section type as real, styled HTML:
+- **Hero** — full-width with background image support, overlay, and CTA linking to properties
+- **Property Grid** — renders actual property cards from the database with images, prices, ratings, linking to detail pages
+- **Gallery** — image grid or empty state
+- **Testimonials** — review cards with ratings
+- **Contact** — functional form (client component)
+- **Map** — placeholder for future map integration
+- **Features** — amenity list with check icons
+- **CTA** — call-to-action with button linking to properties
+
+**Template page rendering**: The listing, detail, and checkout pages read the template settings from the config and apply them to real data:
+- Listing page applies card style, columns, image borders, hover effects, colors, show/hide toggles
+- Detail page applies gallery style (grid/slider/masonry), amenities, calendar, booking form layout
+- Checkout page applies flow style (single/multi-step), form styling, order summary
+
+**Data fetching** (`data.ts`): `getSiteByDomain()` fetches site + properties by subdomain. `getProperty()` fetches a single property with availability.
 
 ---
 
-### 5. Database Schema
+### 6. Database Schema
 
 **Models:**
 - **User** — id, email, name, password, sites[]
@@ -157,14 +191,14 @@ The preview shows the guest info form and booking summary with live style update
 - **Booking** — id, checkIn, checkOut, guests, status (PENDING/CONFIRMED/CANCELLED), guest info, totalPrice, notes, propertyId, siteId
 - **Availability** — id, date, available, price override, propertyId (unique per property+date)
 
-**Seed data:** One demo user, one demo site ("Astra Villas"), one demo property.
+**Seed data:** One demo user, one demo site ("Astra Villas"), three demo properties (Clifftop Villa, Mountain Retreat Cabin, Beachfront Bungalow).
 
 ---
 
-### 6. Config Migration
+### 7. Config Migration
 **File:** `src/lib/config-migrate.ts`
 
-Old site configs had a flat `sections[]` array. New configs have `pages[]` + `templates`. The migration function (`migrateConfig`) runs when loading a site in the builder — if it detects the old format, it wraps sections into a "Home" page and adds default template settings. This ensures backward compatibility.
+Old site configs had a flat `sections[]` array. New configs have `pages[]` + `templates`. The migration function (`migrateConfig`) runs when loading a site in the builder or rendering a public page — if it detects the old format, it wraps sections into a "Home" page and adds default template settings. This ensures backward compatibility.
 
 ---
 
@@ -172,45 +206,46 @@ Old site configs had a flat `sections[]` array. New configs have `pages[]` + `te
 
 ### High Priority (Next Steps)
 
-1. **Public site rendering** — The builder saves configs, but there's no public-facing site yet. Need to:
-   - Create `src/app/site/[domain]/` route that reads the config and renders the actual website.
-   - Render drag-and-drop pages from section configs.
-   - Render template pages (listing, detail, checkout) using template settings + real property data.
-   - This is the most important next step — it makes the builder actually useful.
-
-2. **Property management** — CRUD for properties within a site. Currently only the seed has one property. Need:
-   - Dashboard page to add/edit/delete properties per site.
+1. **Property management CRUD** — Currently properties only exist via seed data. Need:
+   - Dashboard page per site to add/edit/delete properties.
    - Image upload (Cloudinary or S3).
-   - Amenities editor.
-   - Location picker (map integration).
+   - Amenities editor (add/remove amenities).
+   - Location picker (map integration for lat/lng).
+   - This is the most important next step — owners need to manage their own property data.
+
+2. **Booking flow (functional)** — The checkout page renders a form, but nothing happens on submit. Need:
+   - Server action to create a `Booking` record with status PENDING.
+   - Date validation (check availability, prevent double bookings).
+   - Confirmation page / success state after booking.
+   - Owner sees bookings in dashboard.
+   - No payment for MVP — just reservation.
 
 3. **Authentication** — Replace the hardcoded demo user with real auth.
    - Plan: NextAuth.js (Auth.js) with email/password + optional Google OAuth.
    - Login, register, protected routes.
+   - Middleware to protect `/dashboard` routes.
 
 4. **Availability & Calendar** — Let owners manage property availability.
-   - Calendar UI to block/unblock dates.
-   - Custom pricing per date.
-   - Sync with the `Availability` model.
-
-5. **Booking flow** — The checkout page template exists visually, but there's no actual booking logic.
-   - Guest fills in dates + info → creates a `Booking` record with status PENDING.
-   - Owner sees bookings in dashboard.
-   - No payment for MVP — just reservation.
+   - Calendar UI in dashboard to block/unblock dates.
+   - Custom pricing per date (override base price).
+   - Public calendar on detail page reads from `Availability` model.
+   - Currently the calendar shows hardcoded sample blocked dates.
 
 ### Medium Priority
 
-6. **Preview mode** — Let owners preview their site before publishing. The "Preview" button in the builder is currently disabled.
+5. **Publish/unpublish** — Toggle the `published` flag. Only published sites should be publicly visible. Currently all sites render regardless of status.
 
-7. **Publish/unpublish** — Toggle the `published` flag. Only published sites are publicly visible.
+6. **Multiple custom pages** — The config supports multiple pages, but there's no UI to add/rename/delete pages yet. Currently only "Home" exists.
 
-8. **Multiple custom pages** — The config supports multiple pages, but there's no UI to add/rename/delete pages yet. Currently only "Home" exists.
+7. **Theme system** — The `SiteTheme` (primary color, font family) exists in config but isn't applied globally to public site pages yet. Need a theme settings panel in the builder.
 
-9. **Theme system** — The `SiteTheme` (primary color, font family) exists in config but isn't applied globally yet. Need a theme settings panel.
+8. **Interactive date picker on detail/checkout** — Currently the booking form shows static "Select date" text. Need a real date picker that checks availability and calculates total price.
+
+9. **Image upload** — Currently property images reference local paths. Need Cloudinary or S3 integration for real image uploads.
 
 ### Lower Priority
 
-10. **Custom domains** — Currently sites use subdomains. Add support for custom domains.
+10. **Custom domains** — Currently sites use `/site/[subdomain]`. Add support for `[subdomain].bookwise.dev` and custom domains.
 
 11. **Payments** — Stripe or similar integration for actual booking payments.
 
@@ -218,9 +253,11 @@ Old site configs had a flat `sections[]` array. New configs have `pages[]` + `te
 
 13. **Email notifications** — Booking confirmations, reminders.
 
-14. **SEO** — Per-page meta tags, Open Graph images.
+14. **SEO** — Per-page meta tags, Open Graph images. (Basic metadata already works via `generateMetadata` on public site pages.)
 
-15. **Mobile responsive builder** — The builder itself is desktop-only. Template pages should be responsive.
+15. **Mobile responsive builder** — The builder itself is desktop-only. Public site pages use responsive layouts but could be improved.
+
+16. **Reviews system** — Currently testimonials are hardcoded in builder sections. Need a real reviews model where guests can leave reviews after bookings.
 
 ---
 
@@ -228,7 +265,10 @@ Old site configs had a flat `sections[]` array. New configs have `pages[]` + `te
 
 - **DOM-based builder, not Canvas API** — Sections are real HTML/React components, not drawn on a canvas. This makes styling, accessibility, and responsiveness much easier.
 - **JSON config stored in DB** — The entire site design is a single JSON blob on the `Site` model. This makes saving/loading instant and avoids complex relational schemas for layout data.
+- **Two renderers, one config** — Builder components (`src/components/builder/`) and public site components (`src/components/site/`) are completely separate but read the same JSON config. Builder = editing mode, public site = production website.
 - **Template pages vs. custom pages** — Drag-and-drop works for landing pages, but data-driven pages (listings, property detail) use a template approach where you customize the design but not the layout. This keeps things manageable while still being deeply customizable.
+- **Server Components for public pages** — All public site pages are Server Components (zero JS to browser) except the contact form which needs `"use client"` for the form handler.
 - **shadcn/ui v4 uses Base UI** — Important: the `asChild` pattern doesn't exist. Use `render` prop instead when composing components.
 - **Prisma 7 driver adapter** — No `url` in `datasource` block. Connection is passed via `@prisma/adapter-pg` at runtime. Must use `JSON.parse(JSON.stringify(obj))` when writing complex typed objects to Prisma JSON fields (Prisma's `InputJsonValue` doesn't accept TypeScript interfaces directly).
 - **Demo user pattern** — Hardcoded `demo@bookwise.dev` in `src/lib/constants.ts` used everywhere until auth is built. Easy to find-and-replace later.
+- **Config migration** — `migrateConfig()` in `src/lib/config-migrate.ts` upgrades old flat-section configs to the new multi-page + templates format. Run on every load (builder + public site) for backward compatibility.
