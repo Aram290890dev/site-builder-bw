@@ -8,10 +8,22 @@ export type SectionType =
   | "features"
   | "cta";
 
+export interface SectionStyle {
+  backgroundColor?: string;
+  textColor?: string;
+  accentColor?: string;
+  textAlign?: "left" | "center" | "right";
+  padding?: "sm" | "md" | "lg" | "xl";
+  borderRadius?: "none" | "sm" | "md" | "lg";
+  backgroundImage?: string;
+  backgroundOverlay?: number;
+}
+
 export interface Section {
   id: string;
   type: SectionType;
   data: Record<string, unknown>;
+  style?: SectionStyle;
 }
 
 export interface SiteTheme {

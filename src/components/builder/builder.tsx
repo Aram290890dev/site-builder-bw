@@ -26,6 +26,7 @@ import { SectionSidebar } from "./section-sidebar";
 import { SortableSection } from "./sortable-section";
 import { SectionPreview } from "./section-preview";
 import { SectionEditor } from "./section-editor";
+import type { SectionStyle } from "@/types/builder";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Save, Eye, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -86,6 +87,21 @@ export function Builder({ siteId, siteName, initialConfig }: BuilderProps) {
         ...prev,
         sections: prev.sections.map((s) =>
           s.id === sectionId ? { ...s, data: { ...s.data, ...data } } : s
+        ),
+      }));
+      setSaved(false);
+    },
+    []
+  );
+
+  const updateSectionStyle = useCallback(
+    (sectionId: string, styleUpdates: Partial<SectionStyle>) => {
+      setConfig((prev) => ({
+        ...prev,
+        sections: prev.sections.map((s) =>
+          s.id === sectionId
+            ? { ...s, style: { ...s.style, ...styleUpdates } }
+            : s
         ),
       }));
       setSaved(false);
@@ -249,6 +265,7 @@ export function Builder({ siteId, siteName, initialConfig }: BuilderProps) {
               key={selectedSection.id}
               section={selectedSection}
               onUpdate={updateSection}
+              onUpdateStyle={updateSectionStyle}
               onClose={() => setSelectedId(null)}
             />
           )}
