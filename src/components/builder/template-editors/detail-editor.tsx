@@ -178,25 +178,95 @@ function DetailPreview({ settings }: { settings: DetailPageSettings }) {
   const imgRadius = RADIUS_MAP[settings.galleryImageRadius] ?? "0.5rem";
   const headingStyle: React.CSSProperties = { fontFamily: FONT_MAP[settings.headingFont], color: settings.textColor };
 
+  const MASONRY_HEIGHTS = [180, 240, 160, 280, 200, 220, 150, 260];
+  const imageCount = settings.galleryColumns * 2;
+
   return (
     <div className="space-y-8">
       {/* Gallery */}
-      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${settings.galleryColumns}, 1fr)` }}>
-        {Array.from({ length: settings.galleryColumns + 1 }).map((_, i) => (
-          <div
-            key={i}
-            className="flex items-center justify-center bg-neutral-200 text-xs text-neutral-400"
-            style={{
-              borderRadius: imgRadius,
-              aspectRatio: ASPECT_MAP[settings.imageAspect],
-              gridColumn: i === 0 ? `span ${Math.min(2, settings.galleryColumns)}` : undefined,
-              gridRow: i === 0 ? "span 2" : undefined,
-            }}
-          >
-            Photo {i + 1}
+      {settings.galleryStyle === "grid" && (
+        <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${settings.galleryColumns}, 1fr)` }}>
+          {Array.from({ length: imageCount }).map((_, i) => (
+            <div
+              key={i}
+              className="flex items-center justify-center bg-neutral-200 text-xs text-neutral-400"
+              style={{
+                borderRadius: imgRadius,
+                aspectRatio: ASPECT_MAP[settings.imageAspect],
+                gridColumn: i === 0 ? `span ${Math.min(2, settings.galleryColumns)}` : undefined,
+                gridRow: i === 0 ? "span 2" : undefined,
+              }}
+            >
+              Photo {i + 1}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {settings.galleryStyle === "slider" && (
+        <div className="relative">
+          <div className="flex gap-3 overflow-hidden">
+            <div
+              className="flex w-[65%] shrink-0 items-center justify-center bg-neutral-200 text-sm text-neutral-400"
+              style={{ borderRadius: imgRadius, aspectRatio: ASPECT_MAP[settings.imageAspect === "auto" ? "landscape" : settings.imageAspect] }}
+            >
+              Photo 1
+            </div>
+            <div
+              className="flex w-[30%] shrink-0 items-center justify-center bg-neutral-200 text-xs text-neutral-400"
+              style={{ borderRadius: imgRadius, aspectRatio: ASPECT_MAP[settings.imageAspect === "auto" ? "landscape" : settings.imageAspect] }}
+            >
+              Photo 2
+            </div>
+            <div
+              className="flex w-[20%] shrink-0 items-center justify-center bg-neutral-200 text-xs text-neutral-400 opacity-50"
+              style={{ borderRadius: imgRadius, aspectRatio: ASPECT_MAP[settings.imageAspect === "auto" ? "landscape" : settings.imageAspect] }}
+            >
+              Photo 3
+            </div>
           </div>
-        ))}
-      </div>
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-white/80 to-transparent" style={{ background: `linear-gradient(to left, ${settings.pageBgColor}, transparent)` }} />
+          <div className="absolute inset-y-0 left-3 flex items-center">
+            <div className="flex size-8 items-center justify-center rounded-full bg-white/90 text-neutral-600 shadow-md text-sm">&larr;</div>
+          </div>
+          <div className="absolute inset-y-0 right-3 flex items-center">
+            <div className="flex size-8 items-center justify-center rounded-full bg-white/90 text-neutral-600 shadow-md text-sm">&rarr;</div>
+          </div>
+          <div className="mt-3 flex justify-center gap-1.5">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className="size-2 rounded-full"
+                style={{ backgroundColor: i === 0 ? settings.accentColor : `${settings.textColor}30` }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {settings.galleryStyle === "masonry" && (
+        <div className="flex gap-2" style={{ columnCount: settings.galleryColumns }}>
+          {Array.from({ length: settings.galleryColumns }).map((col, colIdx) => (
+            <div key={colIdx} className="flex flex-1 flex-col gap-2">
+              {Array.from({ length: 3 }).map((_, rowIdx) => {
+                const idx = colIdx * 3 + rowIdx;
+                return (
+                  <div
+                    key={rowIdx}
+                    className="flex items-center justify-center bg-neutral-200 text-xs text-neutral-400"
+                    style={{
+                      borderRadius: imgRadius,
+                      height: MASONRY_HEIGHTS[idx % MASONRY_HEIGHTS.length],
+                    }}
+                  >
+                    Photo {idx + 1}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className={settings.bookingFormStyle === "sidebar" ? "grid grid-cols-3 gap-8" : "space-y-8"}>
         {/* Main Content */}
