@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  sites     Site[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Site {
+  id        String   @id @default(cuid())
+  name      String
+  subdomain String   @unique
+  config    Json     @default("{}")
+  published Boolean  @default(false)
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  properties Property[]
+  bookings   Booking[]
+
+  @@index([ownerId])
+}
+
+model Property {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  address     String?
+  latitude    Float?
+  longitude   Float?
+  price       Float
+  currency    String   @default("USD")
+  images      Json     @default("[]")
+  amenities   Json     @default("[]")
+  maxGuests   Int      @default(1)
+
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  siteId String
+
+  bookings     Booking[]
+  availability Availability[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([siteId])
+}
+
+model Booking {
+  id        String        @id @default(cuid())
+  checkIn   DateTime
+  checkOut  DateTime
+  guests    Int
+  status    BookingStatus @default(PENDING)
+  guestName  String
+  guestEmail String
+  guestPhone String?
+  totalPrice Float
+  notes      String?
+
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String
+
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  siteId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([propertyId])
+  @@index([siteId])
+}
+
+model Availability {
+  id        String   @id @default(cuid())
+  date      DateTime
+  available Boolean  @default(true)
+  price     Float?
+
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String
+
+  @@unique([propertyId, date])
+  @@index([propertyId])
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
