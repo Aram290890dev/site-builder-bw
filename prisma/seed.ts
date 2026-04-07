@@ -58,10 +58,8 @@ async function main() {
 
   console.log("Seeded site:", site.name);
 
-  const property = await prisma.property.upsert({
-    where: { id: "seed-property-1" },
-    update: {},
-    create: {
+  const properties = [
+    {
       id: "seed-property-1",
       name: "The Clifftop Villa",
       description:
@@ -74,11 +72,45 @@ async function main() {
       maxGuests: 8,
       images: ["/images/hero-mockup.png"],
       amenities: ["Pool", "WiFi", "Kitchen", "Parking", "Sea View", "AC"],
-      siteId: site.id,
     },
-  });
+    {
+      id: "seed-property-2",
+      name: "Mountain Retreat Cabin",
+      description:
+        "A cozy 2-bedroom cabin nestled in the mountains with a fireplace, hot tub, and hiking trails at your doorstep.",
+      address: "Aspen, Colorado",
+      latitude: 39.1911,
+      longitude: -106.8175,
+      price: 320,
+      currency: "USD",
+      maxGuests: 4,
+      images: ["/images/features-drag.png"],
+      amenities: ["Hot Tub", "WiFi", "Fireplace", "Kitchen", "Parking", "Mountain View"],
+    },
+    {
+      id: "seed-property-3",
+      name: "Beachfront Bungalow",
+      description:
+        "A charming beachfront bungalow with direct ocean access, tropical garden, and open-air living spaces perfect for a relaxing getaway.",
+      address: "Bali, Indonesia",
+      latitude: -8.4095,
+      longitude: 115.1889,
+      price: 180,
+      currency: "USD",
+      maxGuests: 4,
+      images: ["/images/features-booking.png"],
+      amenities: ["Beach Access", "WiFi", "Pool", "Kitchen", "AC", "Garden"],
+    },
+  ];
 
-  console.log("Seeded property:", property.name);
+  for (const p of properties) {
+    const property = await prisma.property.upsert({
+      where: { id: p.id },
+      update: {},
+      create: { ...p, siteId: site.id },
+    });
+    console.log("Seeded property:", property.name);
+  }
 }
 
 main()
