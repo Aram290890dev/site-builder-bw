@@ -30,6 +30,9 @@ export default async function SiteLayout({
   if (!site) return notFound();
 
   const accent = site.config.theme.primaryColor ?? "#4f46e5";
+  const customPages = site.config.pages.filter((p) => p.slug !== "/");
+  const termsPage = customPages.find((p) => p.slug === "/terms");
+  const privacyPage = customPages.find((p) => p.slug === "/privacy");
 
   return (
     <div className="min-h-screen">
@@ -42,7 +45,18 @@ export default async function SiteLayout({
           >
             {site.name}
           </Link>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-5">
+            {/* Custom pages */}
+            {customPages.map((page) => (
+              <Link
+                key={page.id}
+                href={`/site/${domain}${page.slug}`}
+                className="text-sm text-neutral-600 transition-colors hover:text-black"
+              >
+                {page.name}
+              </Link>
+            ))}
+            {/* Properties (always shown) */}
             <Link
               href={`/site/${domain}/properties`}
               className="text-sm text-neutral-600 transition-colors hover:text-black"
@@ -64,8 +78,32 @@ export default async function SiteLayout({
 
       {/* Site footer */}
       <footer className="border-t border-neutral-100 py-8">
-        <div className="mx-auto max-w-6xl px-6 text-center text-sm text-neutral-400">
-          &copy; {new Date().getFullYear()} {site.name}. All rights reserved.
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
+            <span className="text-sm text-neutral-400">
+              &copy; {new Date().getFullYear()} {site.name}. All rights reserved.
+            </span>
+            {(termsPage || privacyPage) && (
+              <div className="flex items-center gap-4">
+                {termsPage && (
+                  <Link
+                    href={`/site/${domain}${termsPage.slug}`}
+                    className="text-xs text-neutral-400 transition-colors hover:text-neutral-600"
+                  >
+                    {termsPage.name}
+                  </Link>
+                )}
+                {privacyPage && (
+                  <Link
+                    href={`/site/${domain}${privacyPage.slug}`}
+                    className="text-xs text-neutral-400 transition-colors hover:text-neutral-600"
+                  >
+                    {privacyPage.name}
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </footer>
     </div>

@@ -38,6 +38,7 @@ import { SectionEditor } from "./section-editor";
 import { ListingTemplateEditor } from "./template-editors/listing-editor";
 import { DetailTemplateEditor } from "./template-editors/detail-editor";
 import { CheckoutTemplateEditor } from "./template-editors/checkout-editor";
+import { PageManager } from "./page-manager";
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
@@ -48,8 +49,12 @@ import {
   LayoutGrid,
   FileText,
   ShoppingCart,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
+import type { BuilderPage } from "@/types/builder";
 
 const SIDEBAR_PREFIX = "sidebar-";
 
@@ -200,6 +205,38 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
     setSelectedId((prev) => (prev === id ? null : id));
   }, []);
 
+  const addPage = useCallback((page: BuilderPage) => {
+    setConfig((prev) => ({ ...prev, pages: [...prev.pages, page] }));
+    setActiveTab({ type: "page", pageId: page.id });
+    setSelectedId(null);
+    setSaved(false);
+  }, []);
+
+  const renamePage = useCallback((pageId: string, newName: string) => {
+    setConfig((prev) => ({
+      ...prev,
+      pages: prev.pages.map((p) =>
+        p.id === pageId ? { ...p, name: newName } : p
+      ),
+    }));
+    setSaved(false);
+  }, []);
+
+  const deletePage = useCallback(
+    (pageId: string) => {
+      setConfig((prev) => ({
+        ...prev,
+        pages: prev.pages.filter((p) => p.id !== pageId),
+      }));
+      if (activeTab.type === "page" && activeTab.pageId === pageId) {
+        setActiveTab({ type: "page", pageId: config.pages[0]?.id ?? "home" });
+      }
+      setSelectedId(null);
+      setSaved(false);
+    },
+    [activeTab, config.pages]
+  );
+
   function handleDragStart(event: DragStartEvent) {
     setActiveId(event.active.id as string);
   }
@@ -276,23 +313,6 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
     ? (activeId!.replace(SIDEBAR_PREFIX, "") as SectionType)
     : null;
 
-  const tabs: { tab: BuilderTab; label: string; icon: typeof Home }[] = [
-    ...config.pages.map((p) => ({
-      tab: { type: "page" as const, pageId: p.id },
-      label: p.name,
-      icon: Home,
-    })),
-    { tab: { type: "template" as const, template: "listing" as const }, label: "Listings", icon: LayoutGrid },
-    { tab: { type: "template" as const, template: "detail" as const }, label: "Property Detail", icon: FileText },
-    { tab: { type: "template" as const, template: "checkout" as const }, label: "Checkout", icon: ShoppingCart },
-  ];
-
-  function isActiveTab(t: BuilderTab) {
-    if (t.type === "page" && activeTab.type === "page") return t.pageId === activeTab.pageId;
-    if (t.type === "template" && activeTab.type === "template") return t.template === activeTab.template;
-    return false;
-  }
-
   return (
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
       {/* Top bar */}
@@ -337,15 +357,36 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
 
       {/* Page tabs */}
       <div className="flex items-center gap-1 border-b border-neutral-200 bg-neutral-50 px-4">
-        {tabs.map(({ tab, label, icon: Icon }) => (
+        {/* Custom pages */}
+        {config.pages.map((p) => (
+          <PageTab
+            key={p.id}
+            page={p}
+            isActive={activeTab.type === "page" && activeTab.pageId === p.id}
+            isHome={p.slug === "/"}
+            onSelect={() => { setActiveTab({ type: "page", pageId: p.id }); setSelectedId(null); }}
+            onRename={(name) => renamePage(p.id, name)}
+            onDelete={() => deletePage(p.id)}
+          />
+        ))}
+
+        {/* Add page */}
+        <PageManager existingPages={config.pages} onAddPage={addPage} />
+
+        {/* Separator */}
+        <div className="mx-1 h-5 w-px bg-neutral-200" />
+
+        {/* Template tabs */}
+        {([
+          { template: "listing" as const, label: "Listings", icon: LayoutGrid },
+          { template: "detail" as const, label: "Property Detail", icon: FileText },
+          { template: "checkout" as const, label: "Checkout", icon: ShoppingCart },
+        ]).map(({ template, label, icon: Icon }) => (
           <button
-            key={tab.type === "page" ? tab.pageId : tab.template}
-            onClick={() => {
-              setActiveTab(tab);
-              setSelectedId(null);
-            }}
+            key={template}
+            onClick={() => { setActiveTab({ type: "template", template }); setSelectedId(null); }}
             className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors ${
-              isActiveTab(tab)
+              activeTab.type === "template" && activeTab.template === template
                 ? "border-b-2 border-indigo-600 text-indigo-600"
                 : "text-neutral-500 hover:text-neutral-700"
             }`}
@@ -518,4 +559,97 @@ function TemplateView({
         />
       );
   }
+}
+
+/* ─── Page Tab with Context Menu ─── */
+
+function PageTab({
+  page,
+  isActive,
+  isHome,
+  onSelect,
+  onRename,
+  onDelete,
+}: {
+  page: BuilderPage;
+  isActive: boolean;
+  isHome: boolean;
+  onSelect: () => void;
+  onRename: (name: string) => void;
+  onDelete: () => void;
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [nameValue, setNameValue] = useState(page.name);
+
+  function commitRename() {
+    const trimmed = nameValue.trim();
+    if (trimmed && trimmed !== page.name) {
+      onRename(trimmed);
+    }
+    setRenaming(false);
+  }
+
+  if (renaming) {
+    return (
+      <input
+        autoFocus
+        value={nameValue}
+        onChange={(e) => setNameValue(e.target.value)}
+        onBlur={commitRename}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") commitRename();
+          if (e.key === "Escape") { setNameValue(page.name); setRenaming(false); }
+        }}
+        className="w-24 rounded border border-indigo-300 bg-white px-2 py-1 text-xs font-medium outline-none"
+      />
+    );
+  }
+
+  return (
+    <div className="relative flex items-center">
+      <button
+        onClick={onSelect}
+        className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors ${
+          isActive
+            ? "border-b-2 border-indigo-600 text-indigo-600"
+            : "text-neutral-500 hover:text-neutral-700"
+        }`}
+      >
+        <Home className="size-3.5" />
+        {page.name}
+      </button>
+
+      {!isHome && (
+        <button
+          onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
+          className="ml-[-4px] rounded p-0.5 text-neutral-400 transition-colors hover:text-neutral-600"
+        >
+          <MoreHorizontal className="size-3.5" />
+        </button>
+      )}
+
+      {menuOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+          <div className="absolute left-0 top-full z-50 mt-1 w-36 rounded-lg border border-neutral-200 bg-white py-1 shadow-lg">
+            <button
+              onClick={() => { setMenuOpen(false); setRenaming(true); setNameValue(page.name); }}
+              className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-50"
+            >
+              <Pencil className="size-3" />
+              Rename
+            </button>
+            <button
+              onClick={() => { setMenuOpen(false); onDelete(); }}
+              className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50"
+            >
+              <Trash2 className="size-3" />
+              Delete
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
 }
