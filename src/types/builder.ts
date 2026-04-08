@@ -129,6 +129,14 @@ export interface CheckoutPageSettings {
 export interface SiteTheme {
   primaryColor: string;
   fontFamily: string;
+  headingFont?: string;
+  navStyle?: "light" | "dark" | "transparent";
+  navLogoSize?: "sm" | "md" | "lg";
+  footerStyle?: "minimal" | "centered" | "columns";
+  footerBgColor?: string;
+  footerTextColor?: string;
+  bodyBgColor?: string;
+  borderRadius?: "none" | "sm" | "md" | "lg";
 }
 
 export interface SiteConfig {

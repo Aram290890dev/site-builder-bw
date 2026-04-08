@@ -251,15 +251,41 @@ Real authentication using **Auth.js (NextAuth v5)** with email/password credenti
 
 ---
 
+### 10. Global Theme Panel
+**Files:** `src/components/builder/theme-editor.tsx`, `src/components/builder/builder.tsx`, `src/app/site/[domain]/layout.tsx`, `src/types/builder.ts`
+
+A "Theme" button (Palette icon) in the builder toolbar opens a right-side panel for editing site-wide visual settings.
+
+**Theme settings:**
+- **Colors:** Primary/accent color (10 presets + custom picker), body background color (8 presets + custom picker).
+- **Typography:** Body font and heading font (independent) — curated list of 10 fonts: Inter, DM Sans, Poppins, Space Grotesk, Outfit, Playfair Display, Lora, Merriweather, JetBrains Mono, System Default. Google Fonts are auto-loaded via `<link>` tag.
+- **Navbar:** Style (light / dark / transparent) with visual previews. Logo size (SM / MD / LG).
+- **Footer:** Style variants (minimal / centered / columns) with visual previews. Custom background and text colors.
+- **Global Rounding:** Border radius preset (none / sm / md / lg) with visual shape indicators.
+
+**How it works in the builder:**
+- Clicking the "Theme" button toggles the ThemeEditor panel open (replaces section editor in the right panel).
+- All changes write to `config.theme` and persist when saved.
+- The panel groups controls into Colors, Typography, Navbar, Footer, and Global Rounding sections.
+
+**How it works on the public site:**
+- The site layout reads all theme fields from `site.config.theme`.
+- Navbar renders in three styles: light (white bg, dark text), dark (dark bg, white text), transparent (no bg, absolute positioned with spacer div).
+- Footer renders in three layouts: minimal (copyright + legal links in a row), centered (logo + nav links + copyright stacked), columns (3-column grid with branding, pages, legal).
+- Google Fonts are injected as a `<link>` tag based on selected body and heading fonts.
+- Body background, accent color, heading font, and border radius are applied via inline styles and CSS custom variables (`--theme-radius`, `--theme-accent`, `--theme-heading-font`).
+
+**All new theme fields are optional with sensible defaults — existing sites need zero migration.**
+
+---
+
 ## What's NOT Built Yet
 
 ### High Priority (Next Steps)
 
 1. **Publish/unpublish** — Toggle the `published` flag. Only published sites should be publicly visible. Currently all sites render regardless of status.
 
-2. **Theme system** — The `SiteTheme` (primary color, font family) is partially applied. Need a richer theme settings panel in the builder with font picker and global color scheme.
-
-3. **Responsive public site** — Public site pages use responsive layouts but could be improved, especially the navbar (needs a mobile hamburger menu for sites with many pages).
+2. **Responsive public site** — Public site pages use responsive layouts but could be improved, especially the navbar (needs a mobile hamburger menu for sites with many pages).
 
 ### Medium Priority
 

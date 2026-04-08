@@ -24,6 +24,7 @@ import type {
   Section,
   SectionType,
   SectionStyle,
+  SiteTheme,
   BuilderTab,
   ListingPageSettings,
   DetailPageSettings,
@@ -35,6 +36,7 @@ import { SectionSidebar } from "./section-sidebar";
 import { SortableSection } from "./sortable-section";
 import { SectionPreview } from "./section-preview";
 import { SectionEditor } from "./section-editor";
+import { ThemeEditor } from "./theme-editor";
 import { ListingTemplateEditor } from "./template-editors/listing-editor";
 import { DetailTemplateEditor } from "./template-editors/detail-editor";
 import { CheckoutTemplateEditor } from "./template-editors/checkout-editor";
@@ -49,6 +51,7 @@ import {
   LayoutGrid,
   FileText,
   ShoppingCart,
+  Palette,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -73,6 +76,7 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showThemeEditor, setShowThemeEditor] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -241,8 +245,20 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
     []
   );
 
+  const updateTheme = useCallback(
+    (updates: Partial<SiteTheme>) => {
+      setConfig((prev) => ({
+        ...prev,
+        theme: { ...prev.theme, ...updates },
+      }));
+      setSaved(false);
+    },
+    []
+  );
+
   const selectSection = useCallback((id: string) => {
     setSelectedId((prev) => (prev === id ? null : id));
+    setShowThemeEditor(false);
   }, []);
 
   const addPage = useCallback((page: BuilderPage) => {
@@ -369,6 +385,15 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
           <span className="text-sm font-medium">{siteName}</span>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { setShowThemeEditor((v) => !v); setSelectedId(null); }}
+            className={showThemeEditor ? "border-indigo-300 bg-indigo-50 text-indigo-700" : ""}
+          >
+            <Palette className="mr-1.5 size-3.5" />
+            Theme
+          </Button>
           <a
             href={`/site/${siteSubdomain}`}
             target="_blank"
@@ -472,7 +497,13 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
               </div>
             </div>
 
-            {selectedSection && (
+            {showThemeEditor ? (
+              <ThemeEditor
+                theme={config.theme}
+                onUpdate={updateTheme}
+                onClose={() => setShowThemeEditor(false)}
+              />
+            ) : selectedSection ? (
               <SectionEditor
                 key={selectedSection.id}
                 section={selectedSection}
@@ -480,7 +511,7 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
                 onUpdateStyle={updateSectionStyle}
                 onClose={() => setSelectedId(null)}
               />
-            )}
+            ) : null}
           </div>
 
           <DragOverlay dropAnimation={null}>

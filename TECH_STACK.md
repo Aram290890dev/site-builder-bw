@@ -161,6 +161,7 @@ src/
 │   │   ├── sortable-section.tsx  # Sortable canvas section wrapper
 │   │   ├── section-preview.tsx   # Section visual preview (applies styles)
 │   │   ├── section-editor.tsx    # Content + style editing panel
+│   │   ├── theme-editor.tsx     # Global theme panel (colors, fonts, navbar, footer)
 │   │   └── template-editors/     # Template page customizers
 │   │       ├── listing-editor.tsx
 │   │       ├── detail-editor.tsx
