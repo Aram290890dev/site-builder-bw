@@ -22,3 +22,22 @@ export async function saveSiteConfig(siteId: string, config: SiteConfig) {
   });
   return { success: true };
 }
+
+export async function toggleSitePublish(siteId: string) {
+  await requireSiteOwner(siteId);
+
+  const site = await prisma.site.findUnique({
+    where: { id: siteId },
+    select: { published: true },
+  });
+
+  if (!site) return { published: false };
+
+  const published = !site.published;
+  await prisma.site.update({
+    where: { id: siteId },
+    data: { published },
+  });
+
+  return { published };
+}

@@ -49,6 +49,23 @@ export default async function SiteLayout({
 
   if (!site) return notFound();
 
+  if (!site.published) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-6">
+        <div className="text-center">
+          <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-indigo-50">
+            <svg className="size-8 text-indigo-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-neutral-900">{site.name}</h1>
+          <p className="mt-3 text-lg text-neutral-500">Coming soon</p>
+          <p className="mt-1 text-sm text-neutral-400">We&apos;re working on something great. Check back later!</p>
+        </div>
+      </div>
+    );
+  }
+
   const theme = site.config.theme;
   const accent = theme.primaryColor ?? "#4f46e5";
   const bodyFont = theme.fontFamily ?? "Inter";

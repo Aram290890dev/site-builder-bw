@@ -21,6 +21,7 @@ export default async function BuilderPage({
       siteName={site.name}
       siteSubdomain={site.subdomain}
       initialConfig={config}
+      initialPublished={site.published}
     />
   );
 }

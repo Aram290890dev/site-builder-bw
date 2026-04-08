@@ -88,6 +88,27 @@ export async function createSite(formData: FormData) {
   return { success: true };
 }
 
+export async function togglePublish(siteId: string) {
+  const user = await requireUser();
+
+  const site = await prisma.site.findUnique({
+    where: { id: siteId },
+    select: { ownerId: true, published: true },
+  });
+
+  if (!site || site.ownerId !== user.id) {
+    return { error: "Not authorized" };
+  }
+
+  await prisma.site.update({
+    where: { id: siteId },
+    data: { published: !site.published },
+  });
+
+  revalidatePath("/dashboard");
+  return { published: !site.published };
+}
+
 export async function deleteSite(siteId: string) {
   const user = await requireUser();
 

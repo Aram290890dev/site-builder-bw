@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getSites } from "./actions";
 import { CreateSiteDialog } from "./create-site-dialog";
-import { Badge } from "@/components/ui/badge";
+import { PublishToggle } from "./publish-toggle";
 import { Globe, Building2, CalendarDays, Pencil, ExternalLink, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
@@ -43,16 +43,7 @@ function SiteCard({ site }: { site: SiteWithCounts }) {
         <div className="flex size-10 items-center justify-center rounded-xl bg-indigo-50">
           <Globe className="size-5 text-indigo-600" />
         </div>
-        <Badge
-          className={cn(
-            "rounded-full text-xs",
-            site.published
-              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-              : "bg-neutral-100 text-neutral-500 border-neutral-200"
-          )}
-        >
-          {site.published ? "Published" : "Draft"}
-        </Badge>
+        <PublishToggle siteId={site.id} initialPublished={site.published} />
       </div>
 
       <h3 className="text-lg font-semibold text-black">{site.name}</h3>

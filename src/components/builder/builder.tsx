@@ -31,7 +31,7 @@ import type {
   CheckoutPageSettings,
 } from "@/types/builder";
 import { SECTION_DEFINITIONS } from "@/types/builder";
-import { saveSiteConfig } from "@/app/dashboard/[siteId]/builder/actions";
+import { saveSiteConfig, toggleSitePublish } from "@/app/dashboard/[siteId]/builder/actions";
 import { useHistory } from "@/lib/use-history";
 import { SectionSidebar } from "./section-sidebar";
 import { SortableSection } from "./sortable-section";
@@ -78,9 +78,10 @@ interface BuilderProps {
   siteName: string;
   siteSubdomain: string;
   initialConfig: SiteConfig;
+  initialPublished: boolean;
 }
 
-export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: BuilderProps) {
+export function Builder({ siteId, siteName, siteSubdomain, initialConfig, initialPublished }: BuilderProps) {
   const { state: config, set: setConfig, undo, redo, canUndo, canRedo } = useHistory<SiteConfig>(initialConfig);
   const [activeTab, setActiveTab] = useState<BuilderTab>({
     type: "page",
@@ -92,6 +93,8 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
   const [saved, setSaved] = useState(false);
   const [showThemeEditor, setShowThemeEditor] = useState(false);
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>("desktop");
+  const [published, setPublished] = useState(initialPublished);
+  const [publishing, setPublishing] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -487,6 +490,26 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Publish toggle */}
+          <button
+            onClick={async () => {
+              setPublishing(true);
+              const result = await toggleSitePublish(siteId);
+              setPublished(result.published);
+              setPublishing(false);
+            }}
+            disabled={publishing}
+            className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
+              published
+                ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                : "border-neutral-200 bg-neutral-50 text-neutral-500 hover:bg-neutral-100"
+            }`}
+          >
+            <div className={`relative h-4 w-7 rounded-full transition-colors ${published ? "bg-emerald-500" : "bg-neutral-300"}`}>
+              <div className={`absolute top-0.5 size-3 rounded-full bg-white shadow-sm transition-transform ${published ? "translate-x-3.5" : "translate-x-0.5"}`} />
+            </div>
+            {publishing ? "..." : published ? "Live" : "Draft"}
+          </button>
           <Button
             variant="outline"
             size="sm"
