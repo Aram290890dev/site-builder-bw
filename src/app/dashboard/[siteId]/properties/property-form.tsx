@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Pencil, Loader2, X, ImageIcon } from "lucide-react";
+import { ImageUpload } from "@/components/ui/image-upload";
+import { Plus, Pencil, Loader2, X } from "lucide-react";
 
 interface Props {
   siteId: string;
@@ -28,7 +29,6 @@ export function PropertyFormDialog({ siteId, mode, property }: Props) {
   const [amenities, setAmenities] = useState<string[]>(property?.amenities ?? []);
   const [amenityInput, setAmenityInput] = useState("");
   const [images, setImages] = useState<string[]>(property?.images ?? []);
-  const [imageInput, setImageInput] = useState("");
 
   function reset() {
     setName(property?.name ?? "");
@@ -40,7 +40,6 @@ export function PropertyFormDialog({ siteId, mode, property }: Props) {
     setAmenities(property?.amenities ?? []);
     setAmenityInput("");
     setImages(property?.images ?? []);
-    setImageInput("");
   }
 
   function addAmenity() {
@@ -49,14 +48,6 @@ export function PropertyFormDialog({ siteId, mode, property }: Props) {
       setAmenities([...amenities, val]);
     }
     setAmenityInput("");
-  }
-
-  function addImage() {
-    const val = imageInput.trim();
-    if (val) {
-      setImages([...images, val]);
-    }
-    setImageInput("");
   }
 
   async function handleSubmit() {
@@ -200,39 +191,8 @@ export function PropertyFormDialog({ siteId, mode, property }: Props) {
 
               {/* Images */}
               <div className="space-y-2">
-                <Label className="text-xs font-medium text-neutral-500">Images (URLs)</Label>
-                <div className="flex gap-1.5">
-                  <Input
-                    value={imageInput}
-                    onChange={(e) => setImageInput((e.target as HTMLInputElement).value)}
-                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addImage())}
-                    placeholder="https://example.com/photo.jpg"
-                    className="flex-1"
-                  />
-                  <Button size="sm" variant="outline" onClick={addImage} className="shrink-0 rounded-lg">
-                    Add
-                  </Button>
-                </div>
-                {images.length > 0 && (
-                  <div className="grid grid-cols-4 gap-2">
-                    {images.map((url, i) => (
-                      <div key={i} className="group relative aspect-square overflow-hidden rounded-lg bg-neutral-100">
-                        <img src={url} alt={`Image ${i + 1}`} className="h-full w-full object-cover" />
-                        <button
-                          onClick={() => setImages(images.filter((_, j) => j !== i))}
-                          className="absolute top-1 right-1 flex size-5 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                        >
-                          <X className="size-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {images.length === 0 && (
-                  <div className="flex h-20 items-center justify-center rounded-lg border border-dashed border-neutral-200 text-neutral-300">
-                    <ImageIcon className="size-5" />
-                  </div>
-                )}
+                <Label className="text-xs font-medium text-neutral-500">Images</Label>
+                <ImageUpload value={images} onChange={setImages} maxFiles={20} />
               </div>
             </div>
 
