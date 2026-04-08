@@ -61,11 +61,18 @@ export interface Section {
 
 /* ─── Page Types ─── */
 
+export interface PageSeo {
+  metaTitle?: string;
+  metaDescription?: string;
+  ogImage?: string;
+}
+
 export interface BuilderPage {
   id: string;
   name: string;
   slug: string;
   sections: Section[];
+  seo?: PageSeo;
 }
 
 /* ─── Template Settings (for auto-generated pages) ─── */
@@ -92,6 +99,7 @@ export interface ListingPageSettings {
   hoverEffect: "none" | "lift" | "scale" | "glow";
   imageOverlay: boolean;
   pricePosition: "top-right" | "bottom" | "badge";
+  seo?: PageSeo;
 }
 
 export interface DetailPageSettings {
@@ -113,6 +121,7 @@ export interface DetailPageSettings {
   headingFont: "default" | "serif" | "mono";
   cardRadius: "none" | "sm" | "md" | "lg";
   imageAspect: "auto" | "landscape" | "portrait" | "square";
+  seo?: PageSeo;
 }
 
 export interface CheckoutPageSettings {
@@ -122,6 +131,7 @@ export interface CheckoutPageSettings {
   cardRadius: "none" | "sm" | "md" | "lg";
   showOrderSummary: boolean;
   showPropertyImage: boolean;
+  seo?: PageSeo;
 }
 
 /* ─── Site Config ─── */
@@ -139,8 +149,16 @@ export interface SiteTheme {
   borderRadius?: "none" | "sm" | "md" | "lg";
 }
 
+export interface SiteSeo {
+  siteTitle?: string;
+  siteDescription?: string;
+  ogImage?: string;
+  favicon?: string;
+}
+
 export interface SiteConfig {
   theme: SiteTheme;
+  seo?: SiteSeo;
   pages: BuilderPage[];
   templates: {
     listing: ListingPageSettings;

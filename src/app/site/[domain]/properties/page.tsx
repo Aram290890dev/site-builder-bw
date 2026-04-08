@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ListingPageSettings } from "@/types/builder";
 import { DEFAULT_LISTING_SETTINGS } from "@/types/builder";
 import { MapPin, Star, Users, Wifi } from "lucide-react";
+import type { Metadata } from "next";
 
 const RADIUS_MAP: Record<string, string> = { none: "0", sm: "0.25rem", md: "0.5rem", lg: "0.75rem", full: "9999px" };
 const ASPECT_MAP: Record<string, string> = { square: "1/1", landscape: "16/10", portrait: "3/4" };
@@ -14,6 +15,27 @@ const HOVER_CLASSES: Record<string, string> = {
   scale: "transition-transform duration-200 hover:scale-[1.02]",
   glow: "transition-shadow duration-200 hover:shadow-xl",
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ domain: string }>;
+}): Promise<Metadata> {
+  const { domain } = await params;
+  const site = await getSiteByDomain(domain);
+  if (!site) return {};
+
+  const seo = site.config.templates.listing.seo;
+  const siteSeo = site.config.seo;
+
+  return {
+    title: seo?.metaTitle || site.config.templates.listing.pageTitle || "Properties",
+    description: seo?.metaDescription || siteSeo?.siteDescription || undefined,
+    ...(seo?.ogImage || siteSeo?.ogImage
+      ? { openGraph: { images: [{ url: seo?.ogImage || siteSeo?.ogImage || "" }] } }
+      : {}),
+  };
+}
 
 export default async function PropertiesPage({
   params,

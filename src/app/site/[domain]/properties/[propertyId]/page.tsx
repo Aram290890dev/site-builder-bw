@@ -19,12 +19,32 @@ export async function generateMetadata({
 }: {
   params: Promise<{ domain: string; propertyId: string }>;
 }): Promise<Metadata> {
-  const { propertyId } = await params;
-  const property = await getProperty(propertyId);
+  const { domain, propertyId } = await params;
+  const [site, property] = await Promise.all([
+    getSiteByDomain(domain),
+    getProperty(propertyId),
+  ]);
   if (!property) return {};
+
+  const seo = site?.config.templates.detail.seo;
+  const titleTemplate = seo?.metaTitle;
+  const descTemplate = seo?.metaDescription;
+  const imgs = Array.isArray(property.images) ? property.images as string[] : [];
+
   return {
-    title: property.name,
-    description: property.description ?? `Book ${property.name}`,
+    title: titleTemplate
+      ? titleTemplate.replace("{name}", property.name)
+      : property.name,
+    description: descTemplate
+      ? descTemplate.replace("{name}", property.name).replace("{location}", property.address ?? "")
+      : property.description ?? `Book ${property.name}`,
+    openGraph: {
+      images: imgs.length
+        ? [{ url: imgs[0] }]
+        : seo?.ogImage
+        ? [{ url: seo.ogImage }]
+        : [],
+    },
   };
 }
 

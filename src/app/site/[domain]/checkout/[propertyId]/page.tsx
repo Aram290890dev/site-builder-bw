@@ -5,8 +5,28 @@ import type { CheckoutPageSettings } from "@/types/builder";
 import { DEFAULT_CHECKOUT_SETTINGS } from "@/types/builder";
 import { ChevronLeft } from "lucide-react";
 import { CheckoutForm } from "./checkout-form";
+import type { Metadata } from "next";
 
 const RADIUS_MAP: Record<string, string> = { none: "0", sm: "0.25rem", md: "0.5rem", lg: "0.75rem" };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ domain: string; propertyId: string }>;
+}): Promise<Metadata> {
+  const { domain, propertyId } = await params;
+  const [site, property] = await Promise.all([
+    getSiteByDomain(domain),
+    getProperty(propertyId),
+  ]);
+  if (!property) return {};
+
+  const seo = site?.config.templates.checkout.seo;
+  return {
+    title: seo?.metaTitle || `Book ${property.name}`,
+    description: seo?.metaDescription || `Complete your booking for ${property.name}`,
+  };
+}
 
 export default async function CheckoutPage({
   params,

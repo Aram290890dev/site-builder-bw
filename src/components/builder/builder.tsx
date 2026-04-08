@@ -29,6 +29,8 @@ import type {
   ListingPageSettings,
   DetailPageSettings,
   CheckoutPageSettings,
+  PageSeo,
+  SiteSeo,
 } from "@/types/builder";
 import { SECTION_DEFINITIONS } from "@/types/builder";
 import { saveSiteConfig, toggleSitePublish } from "@/app/dashboard/[siteId]/builder/actions";
@@ -38,6 +40,7 @@ import { SortableSection } from "./sortable-section";
 import { SectionPreview } from "./section-preview";
 import { SectionEditor } from "./section-editor";
 import { ThemeEditor } from "./theme-editor";
+import { SeoEditor } from "./seo-editor";
 import { ListingTemplateEditor } from "./template-editors/listing-editor";
 import { DetailTemplateEditor } from "./template-editors/detail-editor";
 import { CheckoutTemplateEditor } from "./template-editors/checkout-editor";
@@ -59,6 +62,7 @@ import {
   Undo2,
   Redo2,
   X,
+  Search,
 } from "lucide-react";
 import Link from "next/link";
 import type { BuilderPage } from "@/types/builder";
@@ -92,6 +96,7 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig, initia
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showThemeEditor, setShowThemeEditor] = useState(false);
+  const [showSeoEditor, setShowSeoEditor] = useState(false);
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>("desktop");
   const [published, setPublished] = useState(initialPublished);
   const [publishing, setPublishing] = useState(false);
@@ -274,9 +279,34 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig, initia
     []
   );
 
+  const updatePageSeo = useCallback(
+    (pageId: string, updates: Partial<PageSeo>) => {
+      setConfig((prev) => ({
+        ...prev,
+        pages: prev.pages.map((p) =>
+          p.id === pageId ? { ...p, seo: { ...p.seo, ...updates } } : p
+        ),
+      }));
+      setSaved(false);
+    },
+    []
+  );
+
+  const updateSiteSeo = useCallback(
+    (updates: Partial<SiteSeo>) => {
+      setConfig((prev) => ({
+        ...prev,
+        seo: { ...prev.seo, ...updates },
+      }));
+      setSaved(false);
+    },
+    []
+  );
+
   const selectSection = useCallback((id: string) => {
     setSelectedId((prev) => (prev === id ? null : id));
     setShowThemeEditor(false);
+    setShowSeoEditor(false);
   }, []);
 
   const addPage = useCallback((page: BuilderPage) => {
@@ -513,11 +543,20 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig, initia
           <Button
             variant="outline"
             size="sm"
-            onClick={() => { setShowThemeEditor((v) => !v); setSelectedId(null); }}
+            onClick={() => { setShowThemeEditor((v) => !v); setShowSeoEditor(false); setSelectedId(null); }}
             className={showThemeEditor ? "border-indigo-300 bg-indigo-50 text-indigo-700" : ""}
           >
             <Palette className="mr-1.5 size-3.5" />
             Theme
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { setShowSeoEditor((v) => !v); setShowThemeEditor(false); setSelectedId(null); }}
+            className={showSeoEditor ? "border-indigo-300 bg-indigo-50 text-indigo-700" : ""}
+          >
+            <Search className="mr-1.5 size-3.5" />
+            SEO
           </Button>
           <a
             href={`/site/${siteSubdomain}`}
@@ -644,6 +683,18 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig, initia
                 onUpdate={updateTheme}
                 onClose={() => setShowThemeEditor(false)}
               />
+            ) : showSeoEditor ? (
+              <SeoEditorPanel
+                activeTab={activeTab}
+                currentPage={currentPage ?? null}
+                config={config}
+                updatePageSeo={updatePageSeo}
+                updateSiteSeo={updateSiteSeo}
+                updateListingSettings={updateListingSettings}
+                updateDetailSettings={updateDetailSettings}
+                updateCheckoutSettings={updateCheckoutSettings}
+                onClose={() => setShowSeoEditor(false)}
+              />
             ) : selectedSection ? (
               <SectionEditor
                 key={selectedSection.id}
@@ -679,6 +730,75 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig, initia
       ) : null}
     </div>
   );
+}
+
+/* ─── SEO Editor Panel Helper ─── */
+
+function SeoEditorPanel({
+  activeTab,
+  currentPage,
+  config,
+  updatePageSeo,
+  updateSiteSeo,
+  updateListingSettings,
+  updateDetailSettings,
+  updateCheckoutSettings,
+  onClose,
+}: {
+  activeTab: BuilderTab;
+  currentPage: BuilderPage | null;
+  config: SiteConfig;
+  updatePageSeo: (pageId: string, updates: Partial<PageSeo>) => void;
+  updateSiteSeo: (updates: Partial<SiteSeo>) => void;
+  updateListingSettings: (updates: Partial<ListingPageSettings>) => void;
+  updateDetailSettings: (updates: Partial<DetailPageSettings>) => void;
+  updateCheckoutSettings: (updates: Partial<CheckoutPageSettings>) => void;
+  onClose: () => void;
+}) {
+  const TEMPLATE_META: Record<string, { name: string; slug: string }> = {
+    listing: { name: "All Properties", slug: "/properties" },
+    detail: { name: "Property Detail", slug: "/properties/[id]" },
+    checkout: { name: "Checkout", slug: "/checkout/[id]" },
+  };
+
+  if (activeTab.type === "page" && currentPage) {
+    return (
+      <SeoEditor
+        pageName={currentPage.name}
+        pageSlug={`/${currentPage.slug}`}
+        seo={currentPage.seo ?? {}}
+        siteSeo={config.seo ?? {}}
+        onUpdatePage={(u) => updatePageSeo(currentPage.id, u)}
+        onUpdateSite={updateSiteSeo}
+        onClose={onClose}
+      />
+    );
+  }
+
+  if (activeTab.type === "template") {
+    const t = activeTab.template;
+    const meta = TEMPLATE_META[t] ?? { name: t, slug: `/${t}` };
+    const templateSettings = config.templates[t];
+
+    return (
+      <SeoEditor
+        pageName={meta.name}
+        pageSlug={meta.slug}
+        seo={templateSettings.seo ?? {}}
+        siteSeo={config.seo ?? {}}
+        onUpdatePage={(u) => {
+          const merged = { ...templateSettings.seo, ...u };
+          if (t === "listing") updateListingSettings({ seo: merged });
+          else if (t === "detail") updateDetailSettings({ seo: merged });
+          else updateCheckoutSettings({ seo: merged });
+        }}
+        onUpdateSite={updateSiteSeo}
+        onClose={onClose}
+      />
+    );
+  }
+
+  return null;
 }
 
 /* ─── Canvas Drop Zone ─── */

@@ -277,33 +277,63 @@ A "Theme" button (Palette icon) in the builder toolbar opens a right-side panel 
 
 **All new theme fields are optional with sensible defaults — existing sites need zero migration.**
 
+### 11. Responsive Preview
+**Files:** `src/components/builder/builder.tsx`, template editors, `src/components/site/mobile-nav.tsx`
+
+Device preview toggle in the builder toolbar (Desktop / Tablet / Mobile icons). Selecting a device constrains the canvas and template preview areas to that device width. Public site pages were also made responsive (hamburger nav, stacking grids, adaptive form layouts).
+
+### 12. Undo / Redo
+**Files:** `src/lib/use-history.ts`, `src/components/builder/builder.tsx`
+
+Custom `useHistory` hook tracks up to 50 config snapshots. Undo (⌘Z) and Redo (⌘⇧Z) buttons in toolbar + keyboard shortcuts. Works across all builder actions (section edits, page management, theme changes, template settings).
+
+### 13. Publish / Unpublish
+**Files:** `src/app/dashboard/actions.ts`, `src/app/dashboard/[siteId]/builder/actions.ts`, `src/app/dashboard/publish-toggle.tsx`, `src/app/site/[domain]/layout.tsx`
+
+Toggle switch on both the dashboard site card and the builder toolbar. When unpublished, the public site shows a "Coming Soon" page. `Site` model has a `published` boolean field.
+
+### 14. SEO Settings
+**Files:** `src/components/builder/seo-editor.tsx`, `src/types/builder.ts`, all public site `page.tsx` files
+
+Per-page and site-wide SEO settings accessible via "SEO" button in the builder toolbar.
+
+**Page-level SEO (drag-and-drop pages + templates):**
+- Meta title (with 60-char counter)
+- Meta description (with 160-char counter)
+- OG image URL (with live preview)
+
+**Site-wide SEO defaults (fallback for pages without custom SEO):**
+- Site title (used in `<title>` template: `Page Title | Site Title`)
+- Site description
+- Default OG image
+- Favicon URL
+
+**How it works:**
+- The SEO editor panel shows a Google search result preview that updates in real time.
+- Page-level settings override site defaults.
+- Template pages support placeholder variables in titles (e.g. `{name}` for property name).
+- All public pages export `generateMetadata()` that reads SEO config from the JSON config.
+- Layout-level metadata uses `title.template` for consistent title suffixes.
+
 ---
 
 ## What's NOT Built Yet
 
 ### High Priority (Next Steps)
 
-1. **Publish/unpublish** — Toggle the `published` flag. Only published sites should be publicly visible. Currently all sites render regardless of status.
+1. **Email Notifications** — Send booking confirmation emails to guests and new-booking alerts to owners.
 
-2. **Responsive public site** — Public site pages use responsive layouts but could be improved, especially the navbar (needs a mobile hamburger menu for sites with many pages).
+2. **Stripe Payments** — Wire up actual payment collection on checkout.
+
+3. **Analytics Dashboard** — Views, bookings, revenue per site.
 
 ### Medium Priority
 
-### Lower Priority
+4. **Custom domains** — Currently sites use `/site/[subdomain]`. Add support for `[subdomain].bookwise.dev` and custom domains.
 
-9. **Custom domains** — Currently sites use `/site/[subdomain]`. Add support for `[subdomain].bookwise.dev` and custom domains.
+5. **Reviews system** — Currently testimonials are hardcoded in builder sections. Need a real reviews model where guests can leave reviews after bookings.
 
-10. **Payments** — Stripe or similar integration for actual booking payments.
-
-11. **Analytics** — Views, bookings, revenue per site dashboard.
-
-12. **Email notifications** — Booking confirmations, reminders to owners and guests.
-
-13. **SEO** — Per-page meta tags, Open Graph images. (Basic metadata already works via `generateMetadata` on public site pages.)
-
-14. **Reviews system** — Currently testimonials are hardcoded in builder sections. Need a real reviews model where guests can leave reviews after bookings.
-
-15. **Mobile builder** — The builder itself is desktop-only. Consider a simplified mobile editing experience.
+6. **Mobile builder** — The builder itself is desktop-only. Consider a simplified mobile editing experience.
 
 ---
 

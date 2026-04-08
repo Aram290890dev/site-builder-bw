@@ -31,9 +31,18 @@ export async function generateMetadata({
   const { domain } = await params;
   const site = await getSiteByDomain(domain);
   if (!site) return {};
+
+  const seo = site.config.seo;
+  const title = seo?.siteTitle || site.name;
+  const description = seo?.siteDescription || `Book your stay at ${site.name}`;
+
   return {
-    title: site.name,
-    description: `Book your stay at ${site.name}`,
+    title: { default: title, template: `%s | ${title}` },
+    description,
+    ...(seo?.ogImage && {
+      openGraph: { images: [{ url: seo.ogImage, width: 1200, height: 630 }] },
+    }),
+    ...(seo?.favicon && { icons: { icon: seo.favicon } }),
   };
 }
 
