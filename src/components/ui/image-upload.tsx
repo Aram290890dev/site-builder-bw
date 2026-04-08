@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Upload, X, GripVertical, ImageIcon, Loader2, AlertCircle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,14 +38,13 @@ export function ImageUpload({ value, onChange, maxFiles = 20 }: ImageUploadProps
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
-  const syncParent = useCallback(
-    (newItems: ImageItem[]) => {
-      const urls = newItems.filter((i) => i.status === "done").map((i) => i.url);
-      onChange(urls);
-    },
-    [onChange]
-  );
+  useEffect(() => {
+    const urls = items.filter((i) => i.status === "done").map((i) => i.url);
+    onChangeRef.current(urls);
+  }, [items]);
 
   async function uploadFiles(files: File[]) {
     const remaining = maxFiles - items.filter((i) => i.status !== "error").length;
@@ -80,15 +79,13 @@ export function ImageUpload({ value, onChange, maxFiles = 20 }: ImageUploadProps
         const data = await res.json();
         const uploadedUrl = data.images[0].url;
 
-        setItems((prev) => {
-          const updated = prev.map((i) =>
+        setItems((prev) =>
+          prev.map((i) =>
             i.id === item.id
               ? { ...i, url: uploadedUrl, status: "done" as const, progress: 100 }
               : i
-          );
-          syncParent(updated);
-          return updated;
-        });
+          )
+        );
       } catch {
         setItems((prev) =>
           prev.map((i) =>
@@ -100,11 +97,7 @@ export function ImageUpload({ value, onChange, maxFiles = 20 }: ImageUploadProps
   }
 
   function removeItem(id: string) {
-    setItems((prev) => {
-      const updated = prev.filter((i) => i.id !== id);
-      syncParent(updated);
-      return updated;
-    });
+    setItems((prev) => prev.filter((i) => i.id !== id));
   }
 
   function retryItem(item: ImageItem) {
@@ -152,7 +145,6 @@ export function ImageUpload({ value, onChange, maxFiles = 20 }: ImageUploadProps
       const updated = [...prev];
       const [moved] = updated.splice(dragIdx, 1);
       updated.splice(idx, 0, moved);
-      syncParent(updated);
       return updated;
     });
     setDragIdx(null);

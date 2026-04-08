@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { DetailPageSettings } from "@/types/builder";
 import { DEFAULT_DETAIL_SETTINGS } from "@/types/builder";
 import { MapPin, Star, Users, Check, ChevronLeft } from "lucide-react";
+import { GallerySlider } from "@/components/site/gallery-slider";
 import type { Metadata } from "next";
 
 const RADIUS_MAP: Record<string, string> = { none: "0", sm: "0.25rem", md: "0.5rem", lg: "0.75rem" };
@@ -220,27 +221,12 @@ function GalleryView({
 }) {
   if (s.galleryStyle === "slider") {
     return (
-      <div className="overflow-hidden rounded-2xl">
-        <div className="relative">
-          <img
-            src={images[0]}
-            alt="Property"
-            className="w-full object-cover"
-            style={{ aspectRatio: ASPECT_MAP[s.imageAspect === "auto" ? "landscape" : s.imageAspect], borderRadius: imgRadius }}
-          />
-          {images.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-1.5">
-              {images.slice(0, 5).map((_, i) => (
-                <div
-                  key={i}
-                  className="size-2 rounded-full"
-                  style={{ backgroundColor: i === 0 ? s.accentColor : "rgba(255,255,255,0.5)" }}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      <GallerySlider
+        images={images}
+        accentColor={s.accentColor}
+        imgRadius={imgRadius}
+        aspectRatio={ASPECT_MAP[s.imageAspect === "auto" ? "landscape" : s.imageAspect]}
+      />
     );
   }
 
