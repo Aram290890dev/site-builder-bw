@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -52,12 +52,23 @@ import {
   FileText,
   ShoppingCart,
   Palette,
+  Monitor,
+  Tablet,
+  Smartphone,
   X,
 } from "lucide-react";
 import Link from "next/link";
 import type { BuilderPage } from "@/types/builder";
 
 const SIDEBAR_PREFIX = "sidebar-";
+
+type PreviewDevice = "desktop" | "tablet" | "mobile";
+
+const DEVICE_CONFIG = {
+  desktop: { maxWidth: "100%", icon: Monitor, label: "Desktop" },
+  tablet: { maxWidth: "768px", icon: Tablet, label: "Tablet" },
+  mobile: { maxWidth: "375px", icon: Smartphone, label: "Mobile" },
+} as const;
 
 interface BuilderProps {
   siteId: string;
@@ -77,6 +88,7 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showThemeEditor, setShowThemeEditor] = useState(false);
+  const [previewDevice, setPreviewDevice] = useState<PreviewDevice>("desktop");
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -369,6 +381,29 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
     ? (activeId!.replace(SIDEBAR_PREFIX, "") as SectionType)
     : null;
 
+  const themeAccent = config.theme.primaryColor ?? "#4f46e5";
+  const themeBodyBg = config.theme.bodyBgColor ?? "#ffffff";
+  const themeFont = config.theme.fontFamily ?? "Inter";
+  const themeHeadingFont = config.theme.headingFont ?? themeFont;
+
+  useEffect(() => {
+    const families = new Set<string>();
+    for (const f of [themeFont, themeHeadingFont]) {
+      if (f && f !== "system-ui") families.add(f.replace(/ /g, "+"));
+    }
+    if (families.size === 0) return;
+    const id = "builder-google-fonts";
+    let link = document.getElementById(id) as HTMLLinkElement | null;
+    const href = `https://fonts.googleapis.com/css2?${[...families].map((f) => `family=${f}:wght@400;500;600;700`).join("&")}&display=swap`;
+    if (!link) {
+      link = document.createElement("link");
+      link.id = id;
+      link.rel = "stylesheet";
+      document.head.appendChild(link);
+    }
+    link.href = href;
+  }, [themeFont, themeHeadingFont]);
+
   return (
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
       {/* Top bar */}
@@ -384,6 +419,28 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
           <div className="h-5 w-px bg-neutral-200" />
           <span className="text-sm font-medium">{siteName}</span>
         </div>
+
+        {/* Device preview toggle */}
+        <div className="flex items-center rounded-lg border border-neutral-200 bg-neutral-50 p-0.5">
+          {(["desktop", "tablet", "mobile"] as const).map((device) => {
+            const { icon: DeviceIcon, label } = DEVICE_CONFIG[device];
+            return (
+              <button
+                key={device}
+                onClick={() => setPreviewDevice(device)}
+                title={label}
+                className={`flex items-center justify-center rounded-md px-2 py-1 transition-all ${
+                  previewDevice === device
+                    ? "bg-white text-indigo-600 shadow-sm"
+                    : "text-neutral-400 hover:text-neutral-600"
+                }`}
+              >
+                <DeviceIcon className="size-4" />
+              </button>
+            );
+          })}
+        </div>
+
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -478,15 +535,31 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
             <SectionSidebar onAdd={addSection} sidebarPrefix={SIDEBAR_PREFIX} />
 
             <div
-              className="flex-1 overflow-y-auto bg-neutral-100 p-8"
+              className="flex-1 overflow-y-auto p-8 transition-colors"
+              style={{
+                backgroundColor: previewDevice !== "desktop" ? "#e5e5e5" : (themeBodyBg === "#ffffff" ? "#f5f5f5" : themeBodyBg),
+                fontFamily: `'${themeFont}', system-ui, sans-serif`,
+              }}
               onClick={(e) => {
                 if (e.target === e.currentTarget) setSelectedId(null);
               }}
             >
-              <div className="mx-auto max-w-3xl">
+              <div
+                className="mx-auto transition-all duration-300 ease-in-out"
+                style={{
+                  maxWidth: DEVICE_CONFIG[previewDevice].maxWidth,
+                  backgroundColor: previewDevice !== "desktop" ? (themeBodyBg === "#ffffff" ? "#f5f5f5" : themeBodyBg) : undefined,
+                  borderRadius: previewDevice !== "desktop" ? "12px" : undefined,
+                  boxShadow: previewDevice !== "desktop" ? "0 4px 24px rgba(0,0,0,0.12)" : undefined,
+                  minHeight: previewDevice !== "desktop" ? "70vh" : undefined,
+                  padding: previewDevice !== "desktop" ? "0" : undefined,
+                  overflow: previewDevice !== "desktop" ? "hidden" : undefined,
+                }}
+              >
                 <CanvasDropZone
                   sections={currentPage.sections}
                   selectedId={selectedId}
+                  themeAccent={themeAccent}
                   onSelect={selectSection}
                   onRemove={removeSection}
                   onDuplicate={duplicateSection}
@@ -544,6 +617,7 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
 function CanvasDropZone({
   sections,
   selectedId,
+  themeAccent,
   onSelect,
   onRemove,
   onDuplicate,
@@ -553,6 +627,7 @@ function CanvasDropZone({
 }: {
   sections: Section[];
   selectedId: string | null;
+  themeAccent?: string;
   onSelect: (id: string) => void;
   onRemove: (id: string) => void;
   onDuplicate: (id: string) => void;
@@ -590,6 +665,7 @@ function CanvasDropZone({
                 key={section.id}
                 section={section}
                 isSelected={section.id === selectedId}
+                themeAccent={themeAccent}
                 onSelect={onSelect}
                 onRemove={onRemove}
                 onDuplicate={onDuplicate}

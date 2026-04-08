@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import type { SiteTheme } from "@/types/builder";
+import { MobileNav } from "@/components/site/mobile-nav";
 
 function googleFontsUrl(theme: SiteTheme): string | null {
   const families = new Set<string>();
@@ -104,7 +105,9 @@ export default async function SiteLayout({
           >
             {site.name}
           </Link>
-          <div className="flex items-center gap-5">
+
+          {/* Desktop links */}
+          <div className="hidden items-center gap-5 md:flex">
             {customPages.map((page) => (
               <Link
                 key={page.id}
@@ -128,6 +131,18 @@ export default async function SiteLayout({
               Book Now
             </Link>
           </div>
+
+          {/* Mobile hamburger */}
+          <MobileNav
+            links={[
+              ...customPages.map((p) => ({ href: `/site/${domain}${p.slug}`, label: p.name })),
+              { href: `/site/${domain}/properties`, label: "Properties" },
+            ]}
+            bookNowHref={`/site/${domain}/properties`}
+            accent={accent}
+            borderRadius={RADIUS_MAP[radius]}
+            navStyle={navStyle}
+          />
         </div>
       </nav>
 

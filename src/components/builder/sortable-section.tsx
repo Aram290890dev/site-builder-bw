@@ -10,6 +10,7 @@ import { GripVertical, Trash2, Pencil, Copy, Eye, EyeOff } from "lucide-react";
 interface SortableSectionProps {
   section: Section;
   isSelected: boolean;
+  themeAccent?: string;
   onSelect: (id: string) => void;
   onRemove: (id: string) => void;
   onDuplicate: (id: string) => void;
@@ -20,6 +21,7 @@ interface SortableSectionProps {
 export function SortableSection({
   section,
   isSelected,
+  themeAccent,
   onSelect,
   onRemove,
   onDuplicate,
@@ -107,7 +109,7 @@ export function SortableSection({
       </div>
 
       <div className="p-4">
-        <SectionPreview section={section} />
+        <SectionPreview section={section} themeAccent={themeAccent} />
       </div>
     </div>
   );

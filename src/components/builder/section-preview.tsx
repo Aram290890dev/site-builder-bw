@@ -95,15 +95,16 @@ function getButtonStyle(style?: SectionStyle, accent?: string): CSSProperties {
 
 interface SectionPreviewProps {
   section: Section;
+  themeAccent?: string;
 }
 
-export function SectionPreview({ section }: SectionPreviewProps) {
+export function SectionPreview({ section, themeAccent }: SectionPreviewProps) {
   const def = SECTION_DEFINITIONS[section.type];
   const Icon = ICON_MAP[def.icon] ?? LayoutGrid;
   const title = (section.data.title as string) ?? def.label;
   const style = section.style;
   const wrapperStyle = getWrapperStyle(style);
-  const accent = style?.accentColor ?? "#4f46e5";
+  const accent = style?.accentColor ?? themeAccent ?? "#4f46e5";
   const textColor = style?.textColor;
   const hStyle = getHeadingStyle(style);
   const bStyle = getButtonStyle(style, accent);
