@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getSites } from "./actions";
 import { CreateSiteDialog } from "./create-site-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Globe, Building2, CalendarDays, Pencil, ExternalLink } from "lucide-react";
+import { Globe, Building2, CalendarDays, Pencil, ExternalLink, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -69,7 +69,7 @@ function SiteCard({ site }: { site: SiteWithCounts }) {
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2">
+      <div className="mt-4 grid grid-cols-2 gap-2">
         <Link
           href={`/dashboard/${site.id}/builder`}
           className={cn(
@@ -89,6 +89,16 @@ function SiteCard({ site }: { site: SiteWithCounts }) {
         >
           <Building2 className="mr-1 size-3.5" />
           Properties
+        </Link>
+        <Link
+          href={`/dashboard/${site.id}/bookings`}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "rounded-lg"
+          )}
+        >
+          <ClipboardList className="mr-1 size-3.5" />
+          Bookings
         </Link>
         <Link
           href={`/site/${site.subdomain}`}

@@ -5,6 +5,7 @@ import type { DetailPageSettings } from "@/types/builder";
 import { DEFAULT_DETAIL_SETTINGS } from "@/types/builder";
 import { MapPin, Star, Users, Check, ChevronLeft } from "lucide-react";
 import { GallerySlider } from "@/components/site/gallery-slider";
+import { BookingWidget } from "@/components/site/booking-widget";
 import type { Metadata } from "next";
 
 const RADIUS_MAP: Record<string, string> = { none: "0", sm: "0.25rem", md: "0.5rem", lg: "0.75rem" };
@@ -167,40 +168,16 @@ export default async function PropertyDetailPage({
 
           {/* Booking sidebar / card */}
           <div className={s.bookingFormStyle === "inline" ? "max-w-xl mx-auto w-full" : s.bookingFormStyle === "card" ? "max-w-sm mx-auto" : ""}>
-            <div className="sticky top-20 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm space-y-5" style={{ borderRadius: radius }}>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-3xl font-bold" style={{ color: s.textColor }}>{symbol}{property.price}</span>
-                <span className="text-base" style={{ color: `${s.textColor}80` }}>/night</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg border border-neutral-200 px-3 py-2.5">
-                  <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: `${s.textColor}50` }}>Check-in</div>
-                  <div className="mt-0.5 text-sm" style={{ color: s.textColor }}>Select date</div>
-                </div>
-                <div className="rounded-lg border border-neutral-200 px-3 py-2.5">
-                  <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: `${s.textColor}50` }}>Check-out</div>
-                  <div className="mt-0.5 text-sm" style={{ color: s.textColor }}>Select date</div>
-                </div>
-              </div>
-
-              <div className="rounded-lg border border-neutral-200 px-3 py-2.5">
-                <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: `${s.textColor}50` }}>Guests</div>
-                <div className="mt-0.5 text-sm" style={{ color: s.textColor }}>1 guest</div>
-              </div>
-
-              <Link
-                href={`/site/${domain}/checkout/${property.id}`}
-                className="block w-full rounded-lg py-3 text-center text-base font-semibold text-white transition-transform hover:scale-[1.01]"
-                style={{ backgroundColor: s.accentColor, borderRadius: radius }}
-              >
-                Book Now
-              </Link>
-
-              <p className="text-center text-xs" style={{ color: `${s.textColor}50` }}>
-                You won&apos;t be charged yet
-              </p>
-            </div>
+            <BookingWidget
+              domain={domain}
+              propertyId={property.id}
+              price={property.price}
+              currency={property.currency}
+              maxGuests={property.maxGuests}
+              accentColor={s.accentColor}
+              textColor={s.textColor}
+              radius={radius}
+            />
           </div>
         </div>
       </div>
