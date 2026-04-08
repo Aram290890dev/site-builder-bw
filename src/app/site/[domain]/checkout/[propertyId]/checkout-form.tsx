@@ -110,7 +110,7 @@ export function CheckoutForm({
           {/* Dates */}
           <div className="rounded-xl border border-neutral-200 bg-white p-6 space-y-4" style={{ borderRadius: cardRadius }}>
             <h2 className="text-lg font-semibold">Your Dates</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-neutral-500">Check-in</label>
                 <input
@@ -157,7 +157,7 @@ export function CheckoutForm({
           {/* Guest Info */}
           <div className="rounded-xl border border-neutral-200 bg-white p-6 space-y-4" style={{ borderRadius: cardRadius }}>
             <h2 className="text-lg font-semibold">Guest Information</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-neutral-500">First Name</label>
                 <input
@@ -183,7 +183,7 @@ export function CheckoutForm({
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-neutral-500">Email</label>
                 <input

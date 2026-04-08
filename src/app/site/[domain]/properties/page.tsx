@@ -68,7 +68,7 @@ export default async function PropertiesPage({
         ) : (
           <div
             className={s.layout === "list" ? "space-y-6" : "grid gap-6"}
-            style={s.layout === "grid" ? { gridTemplateColumns: `repeat(${s.columns}, 1fr)` } : {}}
+            style={s.layout === "grid" ? { gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${s.columns >= 3 ? "280px" : "320px"}), 1fr))` } : {}}
           >
             {site.properties.map((property) => {
               const images = (property.images as string[]) ?? [];
@@ -84,9 +84,9 @@ export default async function PropertiesPage({
                   style={getCardStyle()}
                 >
                   {s.layout === "list" ? (
-                    <div className="flex">
+                    <div className="flex flex-col sm:flex-row">
                       {/* Image */}
-                      <div className="relative w-72 shrink-0 bg-neutral-100" style={{ aspectRatio: "16/10" }}>
+                      <div className="relative w-full sm:w-72 shrink-0 bg-neutral-100" style={{ aspectRatio: "16/10" }}>
                         {firstImage ? (
                           <img src={firstImage} alt={property.name} className="h-full w-full object-cover" />
                         ) : (

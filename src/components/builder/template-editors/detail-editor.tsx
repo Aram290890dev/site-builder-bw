@@ -5,12 +5,16 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, Star, Wifi, Car, Waves, Wind } from "lucide-react";
 
+const DEVICE_WIDTH = { desktop: "100%", tablet: "768px", mobile: "375px" } as const;
+type PreviewDevice = "desktop" | "tablet" | "mobile";
+
 interface Props {
   settings: DetailPageSettings;
+  previewDevice: PreviewDevice;
   onUpdate: (updates: Partial<DetailPageSettings>) => void;
 }
 
-export function DetailTemplateEditor({ settings, onUpdate }: Props) {
+export function DetailTemplateEditor({ settings, previewDevice, onUpdate }: Props) {
   return (
     <div className="flex flex-1 overflow-hidden">
       {/* Settings Panel */}
@@ -159,9 +163,25 @@ export function DetailTemplateEditor({ settings, onUpdate }: Props) {
       </div>
 
       {/* Live Preview */}
-      <div className="flex-1 overflow-y-auto p-8" style={{ backgroundColor: settings.pageBgColor }}>
-        <div className="mx-auto max-w-4xl">
-          <DetailPreview settings={settings} />
+      <div
+        className="flex-1 overflow-y-auto p-8"
+        style={{ backgroundColor: previewDevice !== "desktop" ? "#e5e5e5" : settings.pageBgColor }}
+      >
+        <div
+          className="mx-auto transition-all duration-300 ease-in-out"
+          style={{
+            maxWidth: DEVICE_WIDTH[previewDevice],
+            backgroundColor: settings.pageBgColor,
+            borderRadius: previewDevice !== "desktop" ? "12px" : undefined,
+            boxShadow: previewDevice !== "desktop" ? "0 4px 24px rgba(0,0,0,0.12)" : undefined,
+            minHeight: previewDevice !== "desktop" ? "70vh" : undefined,
+            overflow: previewDevice !== "desktop" ? "hidden" : undefined,
+            padding: previewDevice !== "desktop" ? "2rem 1rem" : undefined,
+          }}
+        >
+          <div className={previewDevice === "desktop" ? "max-w-4xl mx-auto" : ""}>
+            <DetailPreview settings={settings} compact={previewDevice !== "desktop"} />
+          </div>
         </div>
       </div>
     </div>
@@ -172,19 +192,20 @@ const RADIUS_MAP: Record<string, string> = { none: "0", sm: "0.25rem", md: "0.5r
 const ASPECT_MAP: Record<string, string> = { auto: "auto", landscape: "16/10", portrait: "3/4", square: "1/1" };
 const FONT_MAP: Record<string, string> = { default: "inherit", serif: "Georgia, serif", mono: "ui-monospace, monospace" };
 
-function DetailPreview({ settings }: { settings: DetailPageSettings }) {
+function DetailPreview({ settings, compact = false }: { settings: DetailPageSettings; compact?: boolean }) {
   const radius = RADIUS_MAP[settings.cardRadius] ?? "0.75rem";
   const imgRadius = RADIUS_MAP[settings.galleryImageRadius] ?? "0.5rem";
   const headingStyle: React.CSSProperties = { fontFamily: FONT_MAP[settings.headingFont], color: settings.textColor };
 
   const MASONRY_HEIGHTS = [180, 240, 160, 280, 200, 220, 150, 260];
-  const imageCount = settings.galleryColumns * 2;
+  const galleryCols = compact ? Math.min(settings.galleryColumns, 2) : settings.galleryColumns;
+  const imageCount = galleryCols * 2;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Gallery */}
       {settings.galleryStyle === "grid" && (
-        <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${settings.galleryColumns}, 1fr)` }}>
+        <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${galleryCols}, 1fr)` }}>
           {Array.from({ length: imageCount }).map((_, i) => (
             <div
               key={i}
@@ -192,8 +213,8 @@ function DetailPreview({ settings }: { settings: DetailPageSettings }) {
               style={{
                 borderRadius: imgRadius,
                 aspectRatio: ASPECT_MAP[settings.imageAspect],
-                gridColumn: i === 0 ? `span ${Math.min(2, settings.galleryColumns)}` : undefined,
-                gridRow: i === 0 ? "span 2" : undefined,
+                gridColumn: !compact && i === 0 ? `span ${Math.min(2, galleryCols)}` : undefined,
+                gridRow: !compact && i === 0 ? "span 2" : undefined,
               }}
             >
               Photo {i + 1}
@@ -204,32 +225,36 @@ function DetailPreview({ settings }: { settings: DetailPageSettings }) {
 
       {settings.galleryStyle === "slider" && (
         <div className="relative">
-          <div className="flex gap-3 overflow-hidden">
+          <div className="flex gap-2 overflow-hidden">
             <div
-              className="flex w-[65%] shrink-0 items-center justify-center bg-neutral-200 text-sm text-neutral-400"
+              className={`flex shrink-0 items-center justify-center bg-neutral-200 text-sm text-neutral-400 ${compact ? "w-full" : "w-[65%]"}`}
               style={{ borderRadius: imgRadius, aspectRatio: ASPECT_MAP[settings.imageAspect === "auto" ? "landscape" : settings.imageAspect] }}
             >
               Photo 1
             </div>
-            <div
-              className="flex w-[30%] shrink-0 items-center justify-center bg-neutral-200 text-xs text-neutral-400"
-              style={{ borderRadius: imgRadius, aspectRatio: ASPECT_MAP[settings.imageAspect === "auto" ? "landscape" : settings.imageAspect] }}
-            >
-              Photo 2
-            </div>
-            <div
-              className="flex w-[20%] shrink-0 items-center justify-center bg-neutral-200 text-xs text-neutral-400 opacity-50"
-              style={{ borderRadius: imgRadius, aspectRatio: ASPECT_MAP[settings.imageAspect === "auto" ? "landscape" : settings.imageAspect] }}
-            >
-              Photo 3
-            </div>
+            {!compact && (
+              <>
+                <div
+                  className="flex w-[30%] shrink-0 items-center justify-center bg-neutral-200 text-xs text-neutral-400"
+                  style={{ borderRadius: imgRadius, aspectRatio: ASPECT_MAP[settings.imageAspect === "auto" ? "landscape" : settings.imageAspect] }}
+                >
+                  Photo 2
+                </div>
+                <div
+                  className="flex w-[20%] shrink-0 items-center justify-center bg-neutral-200 text-xs text-neutral-400 opacity-50"
+                  style={{ borderRadius: imgRadius, aspectRatio: ASPECT_MAP[settings.imageAspect === "auto" ? "landscape" : settings.imageAspect] }}
+                >
+                  Photo 3
+                </div>
+              </>
+            )}
           </div>
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-white/80 to-transparent" style={{ background: `linear-gradient(to left, ${settings.pageBgColor}, transparent)` }} />
-          <div className="absolute inset-y-0 left-3 flex items-center">
-            <div className="flex size-8 items-center justify-center rounded-full bg-white/90 text-neutral-600 shadow-md text-sm">&larr;</div>
+          {!compact && <div className="pointer-events-none absolute inset-y-0 right-0 w-24" style={{ background: `linear-gradient(to left, ${settings.pageBgColor}, transparent)` }} />}
+          <div className="absolute inset-y-0 left-2 flex items-center">
+            <div className="flex size-7 items-center justify-center rounded-full bg-white/90 text-neutral-600 shadow-md text-xs">&larr;</div>
           </div>
-          <div className="absolute inset-y-0 right-3 flex items-center">
-            <div className="flex size-8 items-center justify-center rounded-full bg-white/90 text-neutral-600 shadow-md text-sm">&rarr;</div>
+          <div className="absolute inset-y-0 right-2 flex items-center">
+            <div className="flex size-7 items-center justify-center rounded-full bg-white/90 text-neutral-600 shadow-md text-xs">&rarr;</div>
           </div>
           <div className="mt-3 flex justify-center gap-1.5">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -244,8 +269,8 @@ function DetailPreview({ settings }: { settings: DetailPageSettings }) {
       )}
 
       {settings.galleryStyle === "masonry" && (
-        <div className="flex gap-2" style={{ columnCount: settings.galleryColumns }}>
-          {Array.from({ length: settings.galleryColumns }).map((col, colIdx) => (
+        <div className="flex gap-2">
+          {Array.from({ length: galleryCols }).map((_, colIdx) => (
             <div key={colIdx} className="flex flex-1 flex-col gap-2">
               {Array.from({ length: 3 }).map((_, rowIdx) => {
                 const idx = colIdx * 3 + rowIdx;
@@ -255,7 +280,7 @@ function DetailPreview({ settings }: { settings: DetailPageSettings }) {
                     className="flex items-center justify-center bg-neutral-200 text-xs text-neutral-400"
                     style={{
                       borderRadius: imgRadius,
-                      height: MASONRY_HEIGHTS[idx % MASONRY_HEIGHTS.length],
+                      height: compact ? MASONRY_HEIGHTS[idx % MASONRY_HEIGHTS.length] * 0.6 : MASONRY_HEIGHTS[idx % MASONRY_HEIGHTS.length],
                     }}
                   >
                     Photo {idx + 1}
@@ -267,13 +292,14 @@ function DetailPreview({ settings }: { settings: DetailPageSettings }) {
         </div>
       )}
 
-      <div className={settings.bookingFormStyle === "sidebar" ? "grid grid-cols-3 gap-8" : "space-y-8"}>
+      {/* Content + Booking — stacks vertically when compact */}
+      <div className={!compact && settings.bookingFormStyle === "sidebar" ? "grid grid-cols-3 gap-6" : "space-y-6"}>
         {/* Main Content */}
-        <div className={settings.bookingFormStyle === "sidebar" ? "col-span-2 space-y-6" : "space-y-6"}>
+        <div className={!compact && settings.bookingFormStyle === "sidebar" ? "col-span-2 space-y-5" : "space-y-5"}>
           {/* Title */}
           <div>
-            <h1 className="text-2xl font-bold" style={headingStyle}>The Clifftop Villa</h1>
-            <div className="mt-1 flex items-center gap-3 text-sm" style={{ color: `${settings.textColor}99` }}>
+            <h1 className={`font-bold ${compact ? "text-xl" : "text-2xl"}`} style={headingStyle}>The Clifftop Villa</h1>
+            <div className={`mt-1 flex flex-wrap items-center gap-2 ${compact ? "text-xs" : "text-sm"}`} style={{ color: `${settings.textColor}99` }}>
               <span className="flex items-center gap-1"><MapPin className="size-3.5" />Mykonos, Greece</span>
               <span className="flex items-center gap-1"><Star className="size-3.5 fill-amber-400 text-amber-400" />4.9</span>
               <span>8 guests</span>
@@ -293,8 +319,8 @@ function DetailPreview({ settings }: { settings: DetailPageSettings }) {
           {/* Amenities */}
           {settings.showAmenities && (
             <div>
-              <h2 className="text-lg font-semibold mb-3" style={headingStyle}>Amenities</h2>
-              <div className="grid grid-cols-3 gap-2">
+              <h2 className={`font-semibold mb-3 ${compact ? "text-base" : "text-lg"}`} style={headingStyle}>Amenities</h2>
+              <div className={`grid gap-2 ${compact ? "grid-cols-2" : "grid-cols-3"}`}>
                 {[
                   { icon: Waves, label: "Pool" },
                   { icon: Wifi, label: "WiFi" },
@@ -353,10 +379,10 @@ function DetailPreview({ settings }: { settings: DetailPageSettings }) {
         </div>
 
         {/* Booking Sidebar / Card */}
-        <div className={settings.bookingFormStyle === "sidebar" ? "" : settings.bookingFormStyle === "card" ? "max-w-sm mx-auto" : ""}>
-          <div className="sticky top-4 rounded-xl border border-neutral-200 bg-white p-5 space-y-4" style={{ borderRadius: radius }}>
+        <div className={!compact && settings.bookingFormStyle === "sidebar" ? "" : !compact && settings.bookingFormStyle === "card" ? "max-w-sm mx-auto" : ""}>
+          <div className="rounded-xl border border-neutral-200 bg-white p-4 space-y-3" style={{ borderRadius: radius }}>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-bold" style={{ color: settings.textColor }}>€450</span>
+              <span className={`font-bold ${compact ? "text-xl" : "text-2xl"}`} style={{ color: settings.textColor }}>€450</span>
               <span className="text-sm" style={{ color: `${settings.textColor}80` }}>/night</span>
             </div>
             <div className="grid grid-cols-2 gap-2">

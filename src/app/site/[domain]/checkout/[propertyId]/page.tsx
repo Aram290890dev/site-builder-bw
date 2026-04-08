@@ -47,22 +47,22 @@ export default async function CheckoutPage({
         <h1 className="mb-8 text-2xl font-bold">Complete Your Booking</h1>
 
         {s.style === "multi-step" && (
-          <div className="mb-10 flex items-center justify-center gap-4">
+          <div className="mb-10 flex flex-wrap items-center justify-center gap-2 sm:gap-4">
             {["Dates", "Guest Info", "Confirm"].map((step, i) => (
-              <div key={step} className="flex items-center gap-2">
+              <div key={step} className="flex items-center gap-1.5 sm:gap-2">
                 <div
-                  className="flex size-8 items-center justify-center rounded-full text-sm font-bold text-white"
+                  className="flex size-7 items-center justify-center rounded-full text-xs font-bold text-white sm:size-8 sm:text-sm"
                   style={{ backgroundColor: i === 1 ? s.accentColor : "#d4d4d4" }}
                 >
                   {i + 1}
                 </div>
                 <span
-                  className="text-sm font-medium"
+                  className="hidden text-sm font-medium sm:inline"
                   style={{ color: i === 1 ? s.accentColor : "#a3a3a3" }}
                 >
                   {step}
                 </span>
-                {i < 2 && <div className="h-px w-10 bg-neutral-200" />}
+                {i < 2 && <div className="h-px w-6 bg-neutral-200 sm:w-10" />}
               </div>
             ))}
           </div>

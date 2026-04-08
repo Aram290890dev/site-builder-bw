@@ -6,12 +6,16 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, Star, Users, Wifi } from "lucide-react";
 
+const DEVICE_WIDTH = { desktop: "100%", tablet: "768px", mobile: "375px" } as const;
+type PreviewDevice = "desktop" | "tablet" | "mobile";
+
 interface Props {
   settings: ListingPageSettings;
+  previewDevice: PreviewDevice;
   onUpdate: (updates: Partial<ListingPageSettings>) => void;
 }
 
-export function ListingTemplateEditor({ settings, onUpdate }: Props) {
+export function ListingTemplateEditor({ settings, previewDevice, onUpdate }: Props) {
   return (
     <div className="flex flex-1 overflow-hidden">
       {/* Settings Panel */}
@@ -180,13 +184,29 @@ export function ListingTemplateEditor({ settings, onUpdate }: Props) {
       </div>
 
       {/* Live Preview */}
-      <div className="flex-1 overflow-y-auto p-8" style={{ backgroundColor: settings.pageBgColor }}>
-        <div className="mx-auto max-w-4xl">
-          <div className="mb-8" style={{ textAlign: "center" }}>
-            <h1 className="text-2xl font-bold" style={{ color: settings.cardTextColor }}>{settings.pageTitle}</h1>
-            <p className="mt-1 text-sm" style={{ color: `${settings.cardTextColor}80` }}>{settings.pageSubtitle}</p>
+      <div
+        className="flex-1 overflow-y-auto p-8"
+        style={{ backgroundColor: previewDevice !== "desktop" ? "#e5e5e5" : settings.pageBgColor }}
+      >
+        <div
+          className="mx-auto transition-all duration-300 ease-in-out"
+          style={{
+            maxWidth: DEVICE_WIDTH[previewDevice],
+            backgroundColor: settings.pageBgColor,
+            borderRadius: previewDevice !== "desktop" ? "12px" : undefined,
+            boxShadow: previewDevice !== "desktop" ? "0 4px 24px rgba(0,0,0,0.12)" : undefined,
+            minHeight: previewDevice !== "desktop" ? "70vh" : undefined,
+            overflow: previewDevice !== "desktop" ? "hidden" : undefined,
+            padding: previewDevice !== "desktop" ? "2rem 1rem" : undefined,
+          }}
+        >
+          <div className={previewDevice === "desktop" ? "max-w-4xl mx-auto" : ""}>
+            <div className="mb-6" style={{ textAlign: "center" }}>
+              <h1 className={`font-bold ${previewDevice !== "desktop" ? "text-xl" : "text-2xl"}`} style={{ color: settings.cardTextColor }}>{settings.pageTitle}</h1>
+              <p className="mt-1 text-sm" style={{ color: `${settings.cardTextColor}80` }}>{settings.pageSubtitle}</p>
+            </div>
+            <ListingPreview settings={settings} compact={previewDevice !== "desktop"} />
           </div>
-          <ListingPreview settings={settings} />
         </div>
       </div>
     </div>
@@ -205,8 +225,9 @@ const SAMPLE_PROPERTIES = [
 const RADIUS_MAP: Record<string, string> = { none: "0", sm: "0.25rem", md: "0.5rem", lg: "0.75rem", full: "9999px" };
 const ASPECT_MAP: Record<string, string> = { square: "1/1", landscape: "16/10", portrait: "3/4" };
 
-function ListingPreview({ settings }: { settings: ListingPageSettings }) {
-  const items = SAMPLE_PROPERTIES.slice(0, settings.columns * 2);
+function ListingPreview({ settings, compact = false }: { settings: ListingPageSettings; compact?: boolean }) {
+  const cols = compact ? 1 : settings.columns;
+  const items = SAMPLE_PROPERTIES.slice(0, cols * 2);
 
   const cardStyle: React.CSSProperties = {
     backgroundColor: settings.cardBgColor,
@@ -220,8 +241,8 @@ function ListingPreview({ settings }: { settings: ListingPageSettings }) {
 
   return (
     <div
-      className={settings.layout === "list" ? "space-y-4" : "grid gap-6"}
-      style={settings.layout === "grid" ? { gridTemplateColumns: `repeat(${settings.columns}, 1fr)` } : {}}
+      className={settings.layout === "list" ? "space-y-4" : "grid gap-4"}
+      style={settings.layout === "grid" ? { gridTemplateColumns: `repeat(${cols}, 1fr)` } : {}}
     >
       {items.map((prop, i) => (
         <div key={i} style={cardStyle} className="group">

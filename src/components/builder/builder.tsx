@@ -600,33 +600,14 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
           </DragOverlay>
         </DndContext>
       ) : activeTab.type === "template" ? (
-        <div
-          className="flex-1 overflow-y-auto"
-          style={{
-            backgroundColor: previewDevice !== "desktop" ? "#e5e5e5" : undefined,
-          }}
-        >
-          <div
-            className="mx-auto transition-all duration-300 ease-in-out"
-            style={{
-              maxWidth: DEVICE_CONFIG[previewDevice].maxWidth,
-              backgroundColor: previewDevice !== "desktop" ? "#fff" : undefined,
-              borderRadius: previewDevice !== "desktop" ? "12px" : undefined,
-              boxShadow: previewDevice !== "desktop" ? "0 4px 24px rgba(0,0,0,0.12)" : undefined,
-              minHeight: previewDevice !== "desktop" ? "70vh" : undefined,
-              overflow: previewDevice !== "desktop" ? "hidden" : undefined,
-              margin: previewDevice !== "desktop" ? "2rem auto" : undefined,
-            }}
-          >
-            <TemplateView
-              template={activeTab.template}
-              config={config}
-              onUpdateListing={updateListingSettings}
-              onUpdateDetail={updateDetailSettings}
-              onUpdateCheckout={updateCheckoutSettings}
-            />
-          </div>
-        </div>
+        <TemplateView
+          template={activeTab.template}
+          config={config}
+          previewDevice={previewDevice}
+          onUpdateListing={updateListingSettings}
+          onUpdateDetail={updateDetailSettings}
+          onUpdateCheckout={updateCheckoutSettings}
+        />
       ) : null}
     </div>
   );
@@ -705,12 +686,14 @@ function CanvasDropZone({
 function TemplateView({
   template,
   config,
+  previewDevice,
   onUpdateListing,
   onUpdateDetail,
   onUpdateCheckout,
 }: {
   template: "listing" | "detail" | "checkout";
   config: SiteConfig;
+  previewDevice: PreviewDevice;
   onUpdateListing: (u: Partial<ListingPageSettings>) => void;
   onUpdateDetail: (u: Partial<DetailPageSettings>) => void;
   onUpdateCheckout: (u: Partial<CheckoutPageSettings>) => void;
@@ -720,6 +703,7 @@ function TemplateView({
       return (
         <ListingTemplateEditor
           settings={config.templates.listing}
+          previewDevice={previewDevice}
           onUpdate={onUpdateListing}
         />
       );
@@ -727,6 +711,7 @@ function TemplateView({
       return (
         <DetailTemplateEditor
           settings={config.templates.detail}
+          previewDevice={previewDevice}
           onUpdate={onUpdateDetail}
         />
       );
@@ -734,6 +719,7 @@ function TemplateView({
       return (
         <CheckoutTemplateEditor
           settings={config.templates.checkout}
+          previewDevice={previewDevice}
           onUpdate={onUpdateCheckout}
         />
       );

@@ -213,7 +213,7 @@ function GalleryView({
     images.forEach((img, i) => columns[i % cols].push(img));
 
     return (
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         {columns.map((col, colIdx) => (
           <div key={colIdx} className="flex flex-1 flex-col gap-2">
             {col.map((img, rowIdx) => (
@@ -230,7 +230,7 @@ function GalleryView({
   // Grid (default)
   const cols = s.galleryColumns;
   return (
-    <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+    <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, 200px), 1fr))` }}>
       {images.map((img, i) => (
         <div
           key={i}
@@ -238,8 +238,8 @@ function GalleryView({
           style={{
             borderRadius: imgRadius,
             aspectRatio: ASPECT_MAP[s.imageAspect === "auto" ? "landscape" : s.imageAspect],
-            gridColumn: i === 0 && images.length > 1 ? `span ${Math.min(2, cols)}` : undefined,
-            gridRow: i === 0 && images.length > 1 ? "span 2" : undefined,
+            gridColumn: i === 0 && images.length > 1 && cols > 1 ? `span ${Math.min(2, cols)}` : undefined,
+            gridRow: i === 0 && images.length > 1 && cols > 1 ? "span 2" : undefined,
           }}
         >
           <img src={img} alt={`Photo ${i + 1}`} className="h-full w-full object-cover" />
