@@ -69,27 +69,37 @@ function SiteCard({ site }: { site: SiteWithCounts }) {
         </div>
       </div>
 
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 grid grid-cols-3 gap-2">
         <Link
           href={`/dashboard/${site.id}/builder`}
           className={cn(
             buttonVariants({ size: "sm" }),
-            "flex-1 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+            "rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
           )}
         >
-          <Pencil className="mr-1.5 size-3.5" />
+          <Pencil className="mr-1 size-3.5" />
           Edit
+        </Link>
+        <Link
+          href={`/dashboard/${site.id}/properties`}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "rounded-lg"
+          )}
+        >
+          <Building2 className="mr-1 size-3.5" />
+          Properties
         </Link>
         <Link
           href={`/site/${site.subdomain}`}
           target="_blank"
           className={cn(
             buttonVariants({ variant: "outline", size: "sm" }),
-            "flex-1 rounded-lg"
+            "rounded-lg"
           )}
         >
-          <ExternalLink className="mr-1.5 size-3.5" />
-          View Site
+          <ExternalLink className="mr-1 size-3.5" />
+          View
         </Link>
       </div>
     </div>
