@@ -131,13 +131,22 @@ export default async function PropertyDetailPage({
                     ))}
                     {Array.from({ length: 28 }).map((_, i) => {
                       const blocked = blockedDays.includes(i);
+                      const isToday = i === new Date().getDate() - 1;
                       return (
                         <div
                           key={i}
-                          className="flex h-10 items-center justify-center rounded-lg text-sm"
+                          className="flex h-10 items-center justify-center rounded-lg text-sm font-medium"
                           style={{
-                            backgroundColor: blocked ? s.calendarBlockedColor : "transparent",
-                            color: blocked ? "#dc2626" : s.textColor,
+                            backgroundColor: blocked
+                              ? s.calendarBlockedColor
+                              : isToday
+                                ? s.calendarAccentColor
+                                : "transparent",
+                            color: blocked
+                              ? "#dc2626"
+                              : isToday
+                                ? "#ffffff"
+                                : s.textColor,
                             opacity: blocked ? 0.7 : 1,
                           }}
                         >

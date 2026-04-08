@@ -4,18 +4,19 @@ import { Images } from "lucide-react";
 
 interface Props {
   section: Section;
+  accent: string;
   textColor?: string;
   wrapperStyle: CSSProperties;
 }
 
-export function GallerySection({ section, textColor, wrapperStyle }: Props) {
+export function GallerySection({ section, accent, textColor, wrapperStyle }: Props) {
   const title = section.data.title as string;
   const images = (section.data.images as string[]) ?? [];
 
   return (
     <section className="py-16" style={wrapperStyle}>
       <div className="mx-auto max-w-6xl px-6">
-        <h2 className="mb-8 text-center text-3xl font-bold" style={{ color: textColor }}>
+        <h2 className="mb-8 text-3xl font-bold" style={{ color: textColor, textAlign: "inherit" }}>
           {title}
         </h2>
         {images.length > 0 ? (

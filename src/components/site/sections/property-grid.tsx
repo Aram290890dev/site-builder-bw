@@ -16,13 +16,14 @@ interface PropertyData {
 
 interface Props {
   section: Section;
+  accent: string;
   textColor?: string;
   wrapperStyle: CSSProperties;
   siteSubdomain: string;
   properties: PropertyData[];
 }
 
-export function PropertyGridSection({ section, textColor, wrapperStyle, siteSubdomain, properties }: Props) {
+export function PropertyGridSection({ section, accent, textColor, wrapperStyle, siteSubdomain, properties }: Props) {
   const title = section.data.title as string;
   const cols = (section.data.columns as number) ?? 3;
 
@@ -30,8 +31,8 @@ export function PropertyGridSection({ section, textColor, wrapperStyle, siteSubd
     <section className="py-16" style={wrapperStyle}>
       <div className="mx-auto max-w-6xl px-6">
         <h2
-          className="mb-8 text-center text-3xl font-bold"
-          style={{ color: textColor }}
+          className="mb-8 text-3xl font-bold"
+          style={{ color: textColor, textAlign: "inherit" }}
         >
           {title}
         </h2>

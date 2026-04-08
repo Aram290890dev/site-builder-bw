@@ -14,13 +14,22 @@ export function ContactSection({ section, accent, textColor, wrapperStyle }: Pro
   const title = section.data.title as string;
   const email = section.data.email as string;
   const phone = section.data.phone as string;
+  const address = section.data.address as string | undefined;
 
   return (
     <section className="py-16" style={wrapperStyle}>
       <div className="mx-auto max-w-xl px-6">
-        <h2 className="mb-8 text-center text-3xl font-bold" style={{ color: textColor }}>
+        <h2 className="mb-2 text-3xl font-bold" style={{ color: textColor, textAlign: "inherit" }}>
           {title}
         </h2>
+        {/* Contact info bar */}
+        {(email || phone || address) && (
+          <div className="mb-8 flex flex-wrap items-center justify-center gap-4 text-sm" style={{ color: textColor ? `${textColor}99` : "#737373" }}>
+            {email && <span>{email}</span>}
+            {phone && <span>{phone}</span>}
+            {address && <span>{address}</span>}
+          </div>
+        )}
         <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
           <div className="grid grid-cols-2 gap-4">
             <input

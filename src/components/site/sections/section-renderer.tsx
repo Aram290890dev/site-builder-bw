@@ -17,15 +17,30 @@ export function getStyleVars(style?: SectionStyle) {
   const css: CSSProperties = {};
   if (style.backgroundColor) css.backgroundColor = style.backgroundColor;
   if (style.textColor) css.color = style.textColor;
-  if (style.textAlign) css.textAlign = style.textAlign;
+  css.textAlign = style.textAlign ?? "center";
   if (style.padding) css.padding = PADDING_MAP[style.padding];
   if (style.borderRadius) css.borderRadius = RADIUS_MAP[style.borderRadius];
   if (style.backgroundImage) {
     css.backgroundImage = `url(${style.backgroundImage})`;
     css.backgroundSize = "cover";
     css.backgroundPosition = "center";
+    css.position = "relative";
   }
   return css;
+}
+
+function OverlayWrapper({ style, children }: { style?: SectionStyle; children: React.ReactNode }) {
+  const hasOverlay = style?.backgroundImage && (style.backgroundOverlay ?? 0) > 0;
+  if (!hasOverlay) return <>{children}</>;
+  return (
+    <>
+      <div
+        className="absolute inset-0 z-0"
+        style={{ backgroundColor: `rgba(0,0,0,${style!.backgroundOverlay})` }}
+      />
+      <div className="relative z-10">{children}</div>
+    </>
+  );
 }
 
 interface Props {
@@ -52,17 +67,17 @@ export function SectionRenderer({ section, siteSubdomain, properties }: Props) {
     case "hero":
       return <HeroSection section={section} accent={accent} textColor={textColor} wrapperStyle={wrapperStyle} siteSubdomain={siteSubdomain} />;
     case "propertyGrid":
-      return <PropertyGridSection section={section} textColor={textColor} wrapperStyle={wrapperStyle} siteSubdomain={siteSubdomain} properties={properties ?? []} />;
+      return <OverlayWrapper style={section.style}><PropertyGridSection section={section} accent={accent} textColor={textColor} wrapperStyle={wrapperStyle} siteSubdomain={siteSubdomain} properties={properties ?? []} /></OverlayWrapper>;
     case "gallery":
-      return <GallerySection section={section} textColor={textColor} wrapperStyle={wrapperStyle} />;
+      return <OverlayWrapper style={section.style}><GallerySection section={section} accent={accent} textColor={textColor} wrapperStyle={wrapperStyle} /></OverlayWrapper>;
     case "testimonials":
-      return <TestimonialsSection section={section} accent={accent} textColor={textColor} wrapperStyle={wrapperStyle} />;
+      return <OverlayWrapper style={section.style}><TestimonialsSection section={section} accent={accent} textColor={textColor} wrapperStyle={wrapperStyle} /></OverlayWrapper>;
     case "contact":
-      return <ContactSection section={section} accent={accent} textColor={textColor} wrapperStyle={wrapperStyle} />;
+      return <OverlayWrapper style={section.style}><ContactSection section={section} accent={accent} textColor={textColor} wrapperStyle={wrapperStyle} /></OverlayWrapper>;
     case "map":
-      return <MapSection section={section} textColor={textColor} wrapperStyle={wrapperStyle} />;
+      return <OverlayWrapper style={section.style}><MapSection section={section} accent={accent} textColor={textColor} wrapperStyle={wrapperStyle} /></OverlayWrapper>;
     case "features":
-      return <FeaturesSection section={section} accent={accent} textColor={textColor} wrapperStyle={wrapperStyle} />;
+      return <OverlayWrapper style={section.style}><FeaturesSection section={section} accent={accent} textColor={textColor} wrapperStyle={wrapperStyle} /></OverlayWrapper>;
     case "cta":
       return <CTASection section={section} accent={accent} textColor={textColor} wrapperStyle={wrapperStyle} siteSubdomain={siteSubdomain} />;
     default:

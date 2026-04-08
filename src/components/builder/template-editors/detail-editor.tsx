@@ -76,7 +76,6 @@ export function DetailTemplateEditor({ settings, onUpdate }: Props) {
             { key: "showDescription", label: "Description" },
             { key: "showAmenities", label: "Amenities" },
             { key: "showMap", label: "Map" },
-            { key: "showReviews", label: "Reviews" },
           ] as const).map(({ key, label }) => (
             <label key={key} className="flex items-center justify-between">
               <span className="text-xs text-neutral-600">{label}</span>

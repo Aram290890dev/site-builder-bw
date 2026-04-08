@@ -30,12 +30,13 @@ export default async function SiteLayout({
   if (!site) return notFound();
 
   const accent = site.config.theme.primaryColor ?? "#4f46e5";
+  const fontFamily = site.config.theme.fontFamily ?? "inherit";
   const customPages = site.config.pages.filter((p) => p.slug !== "/");
   const termsPage = customPages.find((p) => p.slug === "/terms");
   const privacyPage = customPages.find((p) => p.slug === "/privacy");
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{ fontFamily }}>
       {/* Site nav */}
       <nav className="sticky top-0 z-50 border-b border-neutral-100 bg-white/80 backdrop-blur-lg">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">

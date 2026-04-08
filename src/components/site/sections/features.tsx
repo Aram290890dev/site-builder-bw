@@ -16,7 +16,7 @@ export function FeaturesSection({ section, accent, textColor, wrapperStyle }: Pr
   return (
     <section className="py-16" style={wrapperStyle}>
       <div className="mx-auto max-w-4xl px-6">
-        <h2 className="mb-8 text-center text-3xl font-bold" style={{ color: textColor }}>
+        <h2 className="mb-8 text-3xl font-bold" style={{ color: textColor, textAlign: "inherit" }}>
           {title}
         </h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
