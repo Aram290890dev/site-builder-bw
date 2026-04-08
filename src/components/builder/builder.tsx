@@ -600,13 +600,33 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
           </DragOverlay>
         </DndContext>
       ) : activeTab.type === "template" ? (
-        <TemplateView
-          template={activeTab.template}
-          config={config}
-          onUpdateListing={updateListingSettings}
-          onUpdateDetail={updateDetailSettings}
-          onUpdateCheckout={updateCheckoutSettings}
-        />
+        <div
+          className="flex-1 overflow-y-auto"
+          style={{
+            backgroundColor: previewDevice !== "desktop" ? "#e5e5e5" : undefined,
+          }}
+        >
+          <div
+            className="mx-auto transition-all duration-300 ease-in-out"
+            style={{
+              maxWidth: DEVICE_CONFIG[previewDevice].maxWidth,
+              backgroundColor: previewDevice !== "desktop" ? "#fff" : undefined,
+              borderRadius: previewDevice !== "desktop" ? "12px" : undefined,
+              boxShadow: previewDevice !== "desktop" ? "0 4px 24px rgba(0,0,0,0.12)" : undefined,
+              minHeight: previewDevice !== "desktop" ? "70vh" : undefined,
+              overflow: previewDevice !== "desktop" ? "hidden" : undefined,
+              margin: previewDevice !== "desktop" ? "2rem auto" : undefined,
+            }}
+          >
+            <TemplateView
+              template={activeTab.template}
+              config={config}
+              onUpdateListing={updateListingSettings}
+              onUpdateDetail={updateDetailSettings}
+              onUpdateCheckout={updateCheckoutSettings}
+            />
+          </div>
+        </div>
       ) : null}
     </div>
   );
