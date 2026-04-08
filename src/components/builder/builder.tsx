@@ -32,6 +32,7 @@ import type {
 } from "@/types/builder";
 import { SECTION_DEFINITIONS } from "@/types/builder";
 import { saveSiteConfig } from "@/app/dashboard/[siteId]/builder/actions";
+import { useHistory } from "@/lib/use-history";
 import { SectionSidebar } from "./section-sidebar";
 import { SortableSection } from "./sortable-section";
 import { SectionPreview } from "./section-preview";
@@ -55,6 +56,8 @@ import {
   Monitor,
   Tablet,
   Smartphone,
+  Undo2,
+  Redo2,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -78,7 +81,7 @@ interface BuilderProps {
 }
 
 export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: BuilderProps) {
-  const [config, setConfig] = useState<SiteConfig>(initialConfig);
+  const { state: config, set: setConfig, undo, redo, canUndo, canRedo } = useHistory<SiteConfig>(initialConfig);
   const [activeTab, setActiveTab] = useState<BuilderTab>({
     type: "page",
     pageId: config.pages[0]?.id ?? "home",
@@ -404,6 +407,21 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
     link.href = href;
   }, [themeFont, themeHeadingFont]);
 
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "z") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [undo, redo]);
+
   return (
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
       {/* Top bar */}
@@ -420,25 +438,52 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
           <span className="text-sm font-medium">{siteName}</span>
         </div>
 
-        {/* Device preview toggle */}
-        <div className="flex items-center rounded-lg border border-neutral-200 bg-neutral-50 p-0.5">
-          {(["desktop", "tablet", "mobile"] as const).map((device) => {
-            const { icon: DeviceIcon, label } = DEVICE_CONFIG[device];
-            return (
-              <button
-                key={device}
-                onClick={() => setPreviewDevice(device)}
-                title={label}
-                className={`flex items-center justify-center rounded-md px-2 py-1 transition-all ${
-                  previewDevice === device
-                    ? "bg-white text-indigo-600 shadow-sm"
-                    : "text-neutral-400 hover:text-neutral-600"
-                }`}
-              >
-                <DeviceIcon className="size-4" />
-              </button>
-            );
-          })}
+        {/* Center controls */}
+        <div className="flex items-center gap-3">
+          {/* Undo / Redo */}
+          <div className="flex items-center rounded-lg border border-neutral-200 bg-neutral-50 p-0.5">
+            <button
+              onClick={undo}
+              disabled={!canUndo}
+              title="Undo (⌘Z)"
+              className={`flex items-center justify-center rounded-md px-2 py-1 transition-all ${
+                canUndo ? "text-neutral-500 hover:bg-white hover:text-indigo-600 hover:shadow-sm" : "text-neutral-300 cursor-not-allowed"
+              }`}
+            >
+              <Undo2 className="size-4" />
+            </button>
+            <button
+              onClick={redo}
+              disabled={!canRedo}
+              title="Redo (⌘⇧Z)"
+              className={`flex items-center justify-center rounded-md px-2 py-1 transition-all ${
+                canRedo ? "text-neutral-500 hover:bg-white hover:text-indigo-600 hover:shadow-sm" : "text-neutral-300 cursor-not-allowed"
+              }`}
+            >
+              <Redo2 className="size-4" />
+            </button>
+          </div>
+
+          {/* Device preview toggle */}
+          <div className="flex items-center rounded-lg border border-neutral-200 bg-neutral-50 p-0.5">
+            {(["desktop", "tablet", "mobile"] as const).map((device) => {
+              const { icon: DeviceIcon, label } = DEVICE_CONFIG[device];
+              return (
+                <button
+                  key={device}
+                  onClick={() => setPreviewDevice(device)}
+                  title={label}
+                  className={`flex items-center justify-center rounded-md px-2 py-1 transition-all ${
+                    previewDevice === device
+                      ? "bg-white text-indigo-600 shadow-sm"
+                      : "text-neutral-400 hover:text-neutral-600"
+                  }`}
+                >
+                  <DeviceIcon className="size-4" />
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
