@@ -1,9 +1,15 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import type { Section, SectionStyle } from "@/types/builder";
+import type { Section } from "@/types/builder";
 import { SECTION_DEFINITIONS } from "@/types/builder";
 import { InlineEditable } from "./inline-editable";
+import {
+  getStyleVars,
+  getTypographyVars,
+  getHeadingStyle,
+  getButtonStyle,
+} from "@/components/site/sections/section-renderer";
 import {
   Images,
   Quote,
@@ -14,78 +20,6 @@ import {
   Check,
 } from "lucide-react";
 
-/* ─── Style maps (matching the real site renderer exactly) ─── */
-
-const PADDING_MAP = { sm: "2rem 1rem", md: "3rem 1rem", lg: "5rem 1rem", xl: "7rem 1rem" };
-const RADIUS_MAP = { none: "0", sm: "0.5rem", md: "0.75rem", lg: "1rem" };
-const HEADING_SIZE_MAP = { sm: "1.5rem", md: "1.875rem", lg: "2.25rem", xl: "3rem", "2xl": "3.75rem" };
-const HEADING_WEIGHT_MAP = { light: "300", normal: "400", medium: "500", semibold: "600", bold: "700", black: "900" };
-const LETTER_SPACING_MAP = { tighter: "-0.05em", tight: "-0.025em", normal: "0", wide: "0.025em", wider: "0.05em" };
-const FONT_MAP = { sans: "system-ui, -apple-system, sans-serif", serif: "Georgia, Cambria, serif", mono: "ui-monospace, monospace", display: "Georgia, Cambria, serif" };
-const GRADIENT_DIR_MAP = { "to-b": "to bottom", "to-r": "to right", "to-br": "to bottom right", "to-bl": "to bottom left" };
-
-function getStyleVars(style?: SectionStyle): CSSProperties {
-  if (!style) return {};
-  const css: CSSProperties = {};
-
-  if (style.gradient) {
-    css.background = `linear-gradient(${GRADIENT_DIR_MAP[style.gradient.direction]}, ${style.gradient.from}, ${style.gradient.to})`;
-  } else if (style.backgroundColor) {
-    css.backgroundColor = style.backgroundColor;
-  }
-
-  if (style.textColor) css.color = style.textColor;
-  css.textAlign = style.textAlign ?? "center";
-  if (style.padding) css.padding = PADDING_MAP[style.padding];
-  if (style.borderRadius) css.borderRadius = RADIUS_MAP[style.borderRadius];
-  if (style.fontOverride) css.fontFamily = FONT_MAP[style.fontOverride];
-  if (style.backgroundImage) {
-    css.backgroundImage = `url(${style.backgroundImage})`;
-    css.backgroundSize = "cover";
-    css.backgroundPosition = "center";
-    css.position = "relative";
-  }
-  return css;
-}
-
-function getHeadingStyle(style?: SectionStyle): CSSProperties {
-  if (!style) return {};
-  const css: CSSProperties = {};
-  if (style.headingSize) css.fontSize = HEADING_SIZE_MAP[style.headingSize];
-  if (style.headingWeight) css.fontWeight = HEADING_WEIGHT_MAP[style.headingWeight];
-  if (style.letterSpacing) css.letterSpacing = LETTER_SPACING_MAP[style.letterSpacing];
-  return css;
-}
-
-function getButtonStyle(style?: SectionStyle, accent?: string): CSSProperties {
-  if (!style) return {};
-  const a = accent ?? style.accentColor ?? "#4f46e5";
-  const css: CSSProperties = {};
-
-  if (style.buttonShape === "pill") css.borderRadius = "9999px";
-  else if (style.buttonShape === "square") css.borderRadius = "0";
-  else css.borderRadius = "0.5rem";
-
-  if (style.buttonVariant === "outline") {
-    css.backgroundColor = "transparent";
-    css.color = a;
-    css.border = `2px solid ${a}`;
-  } else if (style.buttonVariant === "ghost") {
-    css.backgroundColor = "transparent";
-    css.color = a;
-    css.border = "2px solid transparent";
-  } else {
-    css.backgroundColor = a;
-    css.color = "#ffffff";
-  }
-
-  if (style.buttonSize === "sm") { css.padding = "0.5rem 1.25rem"; css.fontSize = "0.875rem"; }
-  else if (style.buttonSize === "lg") { css.padding = "1rem 2.5rem"; css.fontSize = "1.125rem"; }
-  else { css.padding = "0.75rem 2rem"; css.fontSize = "1rem"; }
-
-  return css;
-}
-
 interface SectionPreviewProps {
   section: Section;
   themeAccent?: string;
@@ -94,9 +28,12 @@ interface SectionPreviewProps {
 
 export function SectionPreview({ section, themeAccent, onUpdate }: SectionPreviewProps) {
   const style = section.style;
+  const mergedWrapper: CSSProperties = {
+    ...getStyleVars(style),
+    ...getTypographyVars(style),
+  };
   const accent = style?.accentColor ?? themeAccent ?? "#4f46e5";
   const textColor = style?.textColor;
-  const wrapperStyle = getStyleVars(style);
   const hStyle = getHeadingStyle(style);
   const bStyle = getButtonStyle(style, accent);
 
@@ -115,7 +52,7 @@ export function SectionPreview({ section, themeAccent, onUpdate }: SectionPrevie
           className="relative flex min-h-[60vh] items-center justify-center overflow-hidden"
           style={{
             backgroundColor: style?.backgroundColor ?? "#0f172a",
-            ...wrapperStyle,
+            ...mergedWrapper,
           }}
         >
           {bgImage && (
@@ -127,7 +64,7 @@ export function SectionPreview({ section, themeAccent, onUpdate }: SectionPrevie
               onChange={(v) => updateField("title", v)}
               placeholder="Welcome to Our Properties"
               tag="h1"
-              className="text-4xl font-bold tracking-tight sm:text-5xl"
+              className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl"
               style={{ color: textColor ?? "#ffffff", ...hStyle }}
             />
             <InlineEditable
@@ -135,7 +72,7 @@ export function SectionPreview({ section, themeAccent, onUpdate }: SectionPrevie
               onChange={(v) => updateField("subtitle", v)}
               placeholder="Find your perfect stay"
               tag="p"
-              className="mx-auto mt-4 max-w-xl text-lg"
+              className="mx-auto mt-4 max-w-xl text-lg sm:text-xl"
               style={{ color: textColor ? `${textColor}bb` : "#94a3b8" }}
             />
             <div className="mt-8">
@@ -163,7 +100,7 @@ export function SectionPreview({ section, themeAccent, onUpdate }: SectionPrevie
     case "propertyGrid": {
       const cols = (section.data.columns as number) ?? 3;
       return (
-        <section className="py-16" style={wrapperStyle}>
+        <section className="py-16" style={mergedWrapper}>
           <div className="mx-auto max-w-6xl px-6">
             <InlineEditable
               value={(section.data.title as string) ?? ""}
@@ -212,7 +149,7 @@ export function SectionPreview({ section, themeAccent, onUpdate }: SectionPrevie
     case "gallery": {
       const images = (section.data.images as string[]) ?? [];
       return (
-        <section className="py-16" style={wrapperStyle}>
+        <section className="py-16" style={mergedWrapper}>
           <div className="mx-auto max-w-6xl px-6">
             <InlineEditable
               value={(section.data.title as string) ?? ""}
@@ -247,7 +184,7 @@ export function SectionPreview({ section, themeAccent, onUpdate }: SectionPrevie
     case "testimonials": {
       const items = (section.data.items as Array<{ name: string; text: string; rating: number }>) ?? [];
       return (
-        <section className="py-16" style={wrapperStyle}>
+        <section className="py-16" style={mergedWrapper}>
           <div className="mx-auto max-w-6xl px-6">
             <InlineEditable
               value={(section.data.title as string) ?? ""}
@@ -323,7 +260,7 @@ export function SectionPreview({ section, themeAccent, onUpdate }: SectionPrevie
       const address = section.data.address as string | undefined;
 
       return (
-        <section className="py-16" style={wrapperStyle}>
+        <section className="py-16" style={mergedWrapper}>
           <div className="mx-auto max-w-xl px-6">
             <InlineEditable
               value={(section.data.title as string) ?? ""}
@@ -384,7 +321,7 @@ export function SectionPreview({ section, themeAccent, onUpdate }: SectionPrevie
     /* ═══════ MAP — matches site map-section.tsx ═══════ */
     case "map":
       return (
-        <section className="py-16" style={wrapperStyle}>
+        <section className="py-16" style={mergedWrapper}>
           <div className="mx-auto max-w-6xl px-6">
             <InlineEditable
               value={(section.data.title as string) ?? ""}
@@ -408,7 +345,7 @@ export function SectionPreview({ section, themeAccent, onUpdate }: SectionPrevie
     case "features": {
       const featureItems = (section.data.items as string[]) ?? [];
       return (
-        <section className="py-16" style={wrapperStyle}>
+        <section className="py-16" style={mergedWrapper}>
           <div className="mx-auto max-w-4xl px-6">
             <InlineEditable
               value={(section.data.title as string) ?? ""}
@@ -457,7 +394,7 @@ export function SectionPreview({ section, themeAccent, onUpdate }: SectionPrevie
           className="py-20"
           style={{
             backgroundColor: style?.backgroundColor ?? "#0f172a",
-            ...wrapperStyle,
+            ...mergedWrapper,
           }}
         >
           <div className="mx-auto max-w-2xl px-6 text-center">
@@ -501,7 +438,7 @@ export function SectionPreview({ section, themeAccent, onUpdate }: SectionPrevie
     default: {
       const sType = section.type as string;
       return (
-        <div className="flex items-center gap-3 px-6 py-8" style={getStyleVars(style)}>
+        <div className="flex items-center gap-3 px-6 py-8" style={mergedWrapper}>
           <LayoutGrid className="size-5 text-neutral-400" />
           <span className="text-sm font-medium text-neutral-600">
             {(SECTION_DEFINITIONS as Record<string, { label: string }>)[sType]?.label ?? "Unknown Section"}
