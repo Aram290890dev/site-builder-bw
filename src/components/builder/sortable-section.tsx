@@ -26,6 +26,7 @@ export function SortableSection({
   onRemove,
   onDuplicate,
   onToggleHide,
+  onUpdate,
 }: SortableSectionProps) {
   const {
     attributes,
@@ -48,68 +49,80 @@ export function SortableSection({
     <div
       ref={setNodeRef}
       style={style}
-      onClick={() => onSelect(section.id)}
-      className={`group relative cursor-pointer rounded-xl border bg-white shadow-sm transition-all ${
+      className={`group/section relative transition-all ${
         isDragging
-          ? "z-50 border-indigo-400 opacity-50 shadow-lg"
+          ? "z-50 opacity-50"
           : isSelected
-            ? "border-indigo-500 ring-2 ring-indigo-200 shadow-md"
-            : "border-neutral-200 hover:border-neutral-300 hover:shadow-md"
-      } ${isHidden ? "opacity-50" : ""}`}
+            ? "ring-2 ring-indigo-400 ring-offset-1"
+            : ""
+      } ${isHidden ? "opacity-40" : ""}`}
     >
-      <div className="flex items-center gap-2 border-b border-neutral-100 px-4 py-2">
+      {/* Hover toolbar — floats above the section */}
+      <div
+        className={`absolute -top-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-0.5 rounded-full border bg-white px-1.5 py-0.5 shadow-lg transition-all ${
+          isSelected
+            ? "opacity-100 scale-100"
+            : "opacity-0 scale-95 group-hover/section:opacity-100 group-hover/section:scale-100"
+        }`}
+        style={{ borderColor: isSelected ? "#818cf8" : "#e5e5e5" }}
+      >
         <button
-          className="cursor-grab touch-none rounded p-1 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600 active:cursor-grabbing"
+          className="cursor-grab touch-none rounded-full p-1 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600 active:cursor-grabbing"
           {...attributes}
           {...listeners}
           onClick={(e) => e.stopPropagation()}
         >
-          <GripVertical className="size-4" />
+          <GripVertical className="size-3.5" />
         </button>
-        <span className="text-xs font-medium uppercase tracking-wider text-neutral-400">
+
+        <span className="px-1.5 text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
           {def.label}
         </span>
-        {isSelected && (
-          <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-medium text-indigo-600">
-            Editing
-          </span>
-        )}
-        {isHidden && (
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-600">
-            Hidden
-          </span>
-        )}
-        <div className="flex-1" />
+
+        <div className="mx-0.5 h-3.5 w-px bg-neutral-200" />
+
+        <button
+          onClick={(e) => { e.stopPropagation(); onSelect(section.id); }}
+          className="rounded-full p-1 text-neutral-400 transition-colors hover:bg-indigo-50 hover:text-indigo-600"
+          title="Edit in sidebar"
+        >
+          <Pencil className="size-3" />
+        </button>
         <button
           onClick={(e) => { e.stopPropagation(); onDuplicate(section.id); }}
-          className="rounded p-1 text-neutral-400 opacity-0 transition-all hover:bg-blue-50 hover:text-blue-600 group-hover:opacity-100"
+          className="rounded-full p-1 text-neutral-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
           title="Duplicate"
         >
-          <Copy className="size-3.5" />
+          <Copy className="size-3" />
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); onToggleHide(section.id); }}
-          className="rounded p-1 text-neutral-400 opacity-0 transition-all hover:bg-amber-50 hover:text-amber-600 group-hover:opacity-100"
+          className="rounded-full p-1 text-neutral-400 transition-colors hover:bg-amber-50 hover:text-amber-600"
           title={isHidden ? "Show" : "Hide"}
         >
-          {isHidden ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); onSelect(section.id); }}
-          className="rounded p-1 text-neutral-400 opacity-0 transition-all hover:bg-indigo-50 hover:text-indigo-600 group-hover:opacity-100"
-        >
-          <Pencil className="size-3.5" />
+          {isHidden ? <Eye className="size-3" /> : <EyeOff className="size-3" />}
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); onRemove(section.id); }}
-          className="rounded p-1 text-neutral-400 opacity-0 transition-all hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
+          className="rounded-full p-1 text-neutral-400 transition-colors hover:bg-red-50 hover:text-red-600"
+          title="Delete"
         >
-          <Trash2 className="size-3.5" />
+          <Trash2 className="size-3" />
         </button>
       </div>
 
-      <div className="p-4">
-        <SectionPreview section={section} themeAccent={themeAccent} />
+      {/* Hover border indicator */}
+      <div
+        className={`pointer-events-none absolute inset-0 z-10 rounded-lg border-2 transition-all ${
+          isSelected
+            ? "border-indigo-400"
+            : "border-transparent group-hover/section:border-indigo-200"
+        }`}
+      />
+
+      {/* The actual section content — full width, page-like */}
+      <div onClick={() => onSelect(section.id)} className="relative cursor-default">
+        <SectionPreview section={section} themeAccent={themeAccent} onUpdate={onUpdate} />
       </div>
     </div>
   );

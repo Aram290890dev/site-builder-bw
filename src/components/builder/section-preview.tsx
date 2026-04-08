@@ -3,32 +3,17 @@
 import type { CSSProperties } from "react";
 import type { Section, SectionStyle } from "@/types/builder";
 import { SECTION_DEFINITIONS } from "@/types/builder";
+import { InlineEditable } from "./inline-editable";
 import {
-  ImageIcon,
-  LayoutGrid,
   Images,
   Quote,
-  Mail,
   MapPin,
-  List,
-  MousePointerClick,
+  LayoutGrid,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
-const ICON_MAP: Record<string, LucideIcon> = {
-  image: ImageIcon,
-  grid: LayoutGrid,
-  images: Images,
-  quote: Quote,
-  mail: Mail,
-  "map-pin": MapPin,
-  list: List,
-  "mouse-pointer-click": MousePointerClick,
-};
-
-const PADDING_MAP = { sm: "1rem", md: "2rem", lg: "3rem", xl: "5rem" };
+const PADDING_MAP = { sm: "1.5rem", md: "3rem", lg: "4.5rem", xl: "6rem" };
 const RADIUS_MAP = { none: "0", sm: "0.5rem", md: "0.75rem", lg: "1rem" };
-const HEADING_SIZE_MAP = { sm: "0.875rem", md: "1.125rem", lg: "1.25rem", xl: "1.5rem", "2xl": "1.75rem" };
+const HEADING_SIZE_MAP = { sm: "1.25rem", md: "1.75rem", lg: "2.25rem", xl: "2.75rem", "2xl": "3.25rem" };
 const HEADING_WEIGHT_MAP = { light: "300", normal: "400", medium: "500", semibold: "600", bold: "700", black: "900" };
 const LETTER_SPACING_MAP = { tighter: "-0.05em", tight: "-0.025em", normal: "0", wide: "0.025em", wider: "0.05em" };
 const FONT_MAP = { sans: "system-ui, sans-serif", serif: "Georgia, serif", mono: "monospace", display: "Georgia, serif" };
@@ -46,7 +31,7 @@ function getWrapperStyle(style?: SectionStyle): CSSProperties {
 
   if (style.textColor) css.color = style.textColor;
   if (style.textAlign) css.textAlign = style.textAlign;
-  if (style.padding) css.padding = PADDING_MAP[style.padding];
+  if (style.padding) css.padding = `${PADDING_MAP[style.padding]} 2rem`;
   if (style.borderRadius) css.borderRadius = RADIUS_MAP[style.borderRadius];
   if (style.fontOverride) css.fontFamily = FONT_MAP[style.fontOverride];
   if (style.backgroundImage) {
@@ -87,8 +72,9 @@ function getButtonStyle(style?: SectionStyle, accent?: string): CSSProperties {
     css.color = "#ffffff";
   }
 
-  if (style.buttonSize === "sm") { css.padding = "0.375rem 1rem"; css.fontSize = "0.75rem"; }
-  else if (style.buttonSize === "lg") { css.padding = "0.625rem 1.75rem"; css.fontSize = "0.875rem"; }
+  if (style.buttonSize === "sm") { css.padding = "0.5rem 1.25rem"; css.fontSize = "0.875rem"; }
+  else if (style.buttonSize === "lg") { css.padding = "0.875rem 2.5rem"; css.fontSize = "1.125rem"; }
+  else { css.padding = "0.625rem 1.75rem"; css.fontSize = "1rem"; }
 
   return css;
 }
@@ -96,12 +82,10 @@ function getButtonStyle(style?: SectionStyle, accent?: string): CSSProperties {
 interface SectionPreviewProps {
   section: Section;
   themeAccent?: string;
+  onUpdate?: (id: string, data: Record<string, unknown>) => void;
 }
 
-export function SectionPreview({ section, themeAccent }: SectionPreviewProps) {
-  const def = SECTION_DEFINITIONS[section.type];
-  const Icon = ICON_MAP[def.icon] ?? LayoutGrid;
-  const title = (section.data.title as string) ?? def.label;
+export function SectionPreview({ section, themeAccent, onUpdate }: SectionPreviewProps) {
   const style = section.style;
   const wrapperStyle = getWrapperStyle(style);
   const accent = style?.accentColor ?? themeAccent ?? "#4f46e5";
@@ -109,13 +93,18 @@ export function SectionPreview({ section, themeAccent }: SectionPreviewProps) {
   const hStyle = getHeadingStyle(style);
   const bStyle = getButtonStyle(style, accent);
 
+  function updateField(key: string, value: string) {
+    onUpdate?.(section.id, { [key]: value });
+  }
+
   switch (section.type) {
     case "hero":
       return (
         <div
-          className="relative overflow-hidden rounded-lg p-8 text-center"
+          className="relative overflow-hidden text-center"
           style={{
             backgroundColor: style?.backgroundColor ?? "#eef2ff",
+            padding: style?.padding ? undefined : "4rem 2rem",
             ...wrapperStyle,
           }}
         >
@@ -125,24 +114,31 @@ export function SectionPreview({ section, themeAccent }: SectionPreviewProps) {
               style={{ backgroundColor: `rgba(0,0,0,${style.backgroundOverlay ?? 0.4})` }}
             />
           )}
-          <div className="relative">
-            <h2
-              className="text-2xl font-bold"
-              style={{ color: textColor ?? "#1e1b4b", ...hStyle }}
-            >
-              {section.data.title as string}
-            </h2>
-            <p
-              className="mt-2 text-sm"
-              style={{ color: textColor ? `${textColor}99` : "#6b7280" }}
-            >
-              {section.data.subtitle as string}
-            </p>
-            <div
-              className="mt-4 inline-block px-6 py-2 text-sm font-medium"
-              style={{ backgroundColor: accent, color: "#fff", borderRadius: "9999px", ...bStyle }}
-            >
-              {section.data.ctaText as string}
+          <div className="relative mx-auto max-w-2xl">
+            <InlineEditable
+              value={(section.data.title as string) ?? ""}
+              onChange={(v) => updateField("title", v)}
+              placeholder="Welcome to Our Properties"
+              tag="h2"
+              style={{ color: textColor ?? "#1e1b4b", fontSize: "2.25rem", fontWeight: "700", lineHeight: "1.2", ...hStyle }}
+            />
+            <InlineEditable
+              value={(section.data.subtitle as string) ?? ""}
+              onChange={(v) => updateField("subtitle", v)}
+              placeholder="Find your perfect stay"
+              tag="p"
+              className="mt-4"
+              style={{ color: textColor ? `${textColor}bb` : "#6b7280", fontSize: "1.125rem", lineHeight: "1.6" }}
+            />
+            <div className="mt-6">
+              <InlineEditable
+                value={(section.data.ctaText as string) ?? ""}
+                onChange={(v) => updateField("ctaText", v)}
+                placeholder="Browse Properties"
+                tag="span"
+                className="inline-block font-medium"
+                style={{ backgroundColor: accent, color: "#fff", borderRadius: "9999px", padding: "0.75rem 2rem", ...bStyle }}
+              />
             </div>
           </div>
         </div>
@@ -151,92 +147,166 @@ export function SectionPreview({ section, themeAccent }: SectionPreviewProps) {
     case "propertyGrid": {
       const cols = (section.data.columns as number) ?? 3;
       return (
-        <div style={wrapperStyle}>
-          <h3 className="mb-3 text-lg font-semibold" style={{ color: textColor, ...hStyle }}>
-            {title}
-          </h3>
-          <div
-            className="grid gap-3"
-            style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
-          >
-            {Array.from({ length: cols }).map((_, i) => (
-              <div key={i} className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
-                <div className="mb-2 h-20 rounded-md bg-neutral-200" />
-                <div className="h-3 w-2/3 rounded bg-neutral-200" />
-                <div className="mt-1 h-2 w-1/2 rounded bg-neutral-100" />
-              </div>
-            ))}
+        <div style={{ padding: style?.padding ? undefined : "3rem 2rem", ...wrapperStyle }}>
+          <div className="mx-auto max-w-4xl">
+            <InlineEditable
+              value={(section.data.title as string) ?? ""}
+              onChange={(v) => updateField("title", v)}
+              placeholder="Our Properties"
+              tag="h3"
+              style={{ color: textColor, fontSize: "1.5rem", fontWeight: "600", marginBottom: "1.5rem", ...hStyle }}
+            />
+            <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+              {Array.from({ length: cols }).map((_, i) => (
+                <div key={i} className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+                  <div className="h-36 bg-gradient-to-br from-neutral-100 to-neutral-200" />
+                  <div className="p-4">
+                    <div className="h-4 w-3/4 rounded bg-neutral-200" />
+                    <div className="mt-2 h-3 w-1/2 rounded bg-neutral-100" />
+                    <div className="mt-3 flex items-center justify-between">
+                      <div className="h-5 w-16 rounded-full" style={{ backgroundColor: `${accent}20` }} />
+                      <div className="h-3 w-12 rounded bg-neutral-100" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       );
     }
 
-    case "gallery":
+    case "gallery": {
+      const images = (section.data.images as string[]) ?? [];
       return (
-        <div style={wrapperStyle}>
-          <h3 className="mb-3 text-lg font-semibold" style={{ color: textColor, ...hStyle }}>
-            {title}
-          </h3>
-          <div className="grid grid-cols-4 gap-2">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex h-20 items-center justify-center rounded-lg bg-neutral-100">
-                <Images className="size-5 text-neutral-300" />
-              </div>
-            ))}
+        <div style={{ padding: style?.padding ? undefined : "3rem 2rem", ...wrapperStyle }}>
+          <div className="mx-auto max-w-4xl">
+            <InlineEditable
+              value={(section.data.title as string) ?? ""}
+              onChange={(v) => updateField("title", v)}
+              placeholder="Gallery"
+              tag="h3"
+              style={{ color: textColor, fontSize: "1.5rem", fontWeight: "600", marginBottom: "1.5rem", ...hStyle }}
+            />
+            <div className="grid grid-cols-3 gap-3">
+              {(images.length > 0 ? images.slice(0, 6) : [null, null, null, null, null, null]).map((img, i) => (
+                <div key={i} className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
+                  {img ? (
+                    <img src={img} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <Images className="size-8 text-neutral-200" />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       );
+    }
 
     case "testimonials": {
       const items = (section.data.items as Array<{ name: string; text: string; rating: number }>) ?? [];
-      const firstItem = items[0];
       return (
-        <div style={wrapperStyle}>
-          <h3 className="mb-3 text-lg font-semibold" style={{ color: textColor, ...hStyle }}>
-            {title}
-          </h3>
-          {firstItem && (
-            <div className="rounded-lg bg-neutral-50 p-4">
-              <Quote className="mb-2 size-5" style={{ color: `${accent}66` }} />
-              <p className="text-sm italic text-neutral-600">&ldquo;{firstItem.text}&rdquo;</p>
-              <div className="mt-2 flex items-center justify-between">
-                <span className="text-xs font-medium text-neutral-500">— {firstItem.name}</span>
-                <div className="flex gap-0.5">
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <span key={n} className={`text-xs ${n <= firstItem.rating ? "text-amber-400" : "text-neutral-200"}`}>★</span>
-                  ))}
+        <div style={{ padding: style?.padding ? undefined : "3rem 2rem", ...wrapperStyle }}>
+          <div className="mx-auto max-w-4xl">
+            <InlineEditable
+              value={(section.data.title as string) ?? ""}
+              onChange={(v) => updateField("title", v)}
+              placeholder="What Our Guests Say"
+              tag="h3"
+              className="text-center"
+              style={{ color: textColor, fontSize: "1.5rem", fontWeight: "600", marginBottom: "1.5rem", ...hStyle }}
+            />
+            <div className="grid gap-4" style={{ gridTemplateColumns: items.length > 1 ? "repeat(auto-fit, minmax(250px, 1fr))" : "1fr" }}>
+              {items.map((item, i) => (
+                <div key={i} className="rounded-xl border border-neutral-100 bg-white p-5 shadow-sm">
+                  <Quote className="mb-3 size-5" style={{ color: `${accent}44` }} />
+                  <InlineEditable
+                    value={item.text}
+                    onChange={(v) => {
+                      const updated = [...items];
+                      updated[i] = { ...item, text: v };
+                      onUpdate?.(section.id, { items: updated });
+                    }}
+                    placeholder="Review text..."
+                    tag="p"
+                    multiline
+                    style={{ color: textColor ? `${textColor}cc` : "#525252", fontSize: "0.9375rem", fontStyle: "italic", lineHeight: "1.6" }}
+                  />
+                  <div className="mt-4 flex items-center justify-between border-t border-neutral-50 pt-3">
+                    <InlineEditable
+                      value={item.name}
+                      onChange={(v) => {
+                        const updated = [...items];
+                        updated[i] = { ...item, name: v };
+                        onUpdate?.(section.id, { items: updated });
+                      }}
+                      placeholder="Guest name"
+                      tag="span"
+                      style={{ color: textColor ?? "#737373", fontSize: "0.8125rem", fontWeight: "500" }}
+                    />
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <button
+                          key={n}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const updated = [...items];
+                            updated[i] = { ...item, rating: n };
+                            onUpdate?.(section.id, { items: updated });
+                          }}
+                          className={`text-sm transition-colors ${n <= item.rating ? "text-amber-400" : "text-neutral-200 hover:text-amber-300"}`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-          )}
-          {items.length > 1 && (
-            <p className="mt-2 text-xs text-neutral-400">+{items.length - 1} more review{items.length > 2 ? "s" : ""}</p>
-          )}
+          </div>
         </div>
       );
     }
 
     case "contact":
       return (
-        <div style={wrapperStyle}>
-          <h3 className="mb-3 text-lg font-semibold" style={{ color: textColor, ...hStyle }}>
-            {title}
-          </h3>
-          <div className="space-y-2">
-            <div className="h-9 rounded-lg border border-neutral-200 bg-neutral-50 px-3 flex items-center text-xs text-neutral-400">
-              {(section.data.email as string) || "Email address"}
-            </div>
-            <div className="h-9 rounded-lg border border-neutral-200 bg-neutral-50 px-3 flex items-center text-xs text-neutral-400">
-              {(section.data.phone as string) || "Phone number"}
-            </div>
-            <div className="h-20 rounded-lg border border-neutral-200 bg-neutral-50 px-3 pt-2 text-xs text-neutral-400">
-              Message...
-            </div>
-            <div
-              className="h-9 flex items-center justify-center text-sm font-medium"
-              style={{ backgroundColor: accent, color: "#fff", borderRadius: "0.5rem", ...bStyle }}
-            >
-              Send Message
+        <div style={{ padding: style?.padding ? undefined : "3rem 2rem", ...wrapperStyle }}>
+          <div className="mx-auto max-w-lg text-center">
+            <InlineEditable
+              value={(section.data.title as string) ?? ""}
+              onChange={(v) => updateField("title", v)}
+              placeholder="Get in Touch"
+              tag="h3"
+              style={{ color: textColor, fontSize: "1.5rem", fontWeight: "600", marginBottom: "0.5rem", ...hStyle }}
+            />
+            <p className="mb-6 text-sm" style={{ color: textColor ? `${textColor}88` : "#9ca3af" }}>
+              We&apos;d love to hear from you. Send us a message.
+            </p>
+            <div className="space-y-3 text-left">
+              <input
+                className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-700 outline-none"
+                placeholder="Your Name"
+                readOnly
+              />
+              <input
+                className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-700 outline-none"
+                placeholder="Email Address"
+                readOnly
+              />
+              <textarea
+                className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-700 outline-none"
+                placeholder="Your message..."
+                rows={4}
+                readOnly
+              />
+              <div
+                className="flex items-center justify-center py-3 text-sm font-medium"
+                style={{ backgroundColor: accent, color: "#fff", borderRadius: "0.5rem", ...bStyle }}
+              >
+                Send Message
+              </div>
             </div>
           </div>
         </div>
@@ -244,12 +314,21 @@ export function SectionPreview({ section, themeAccent }: SectionPreviewProps) {
 
     case "map":
       return (
-        <div style={wrapperStyle}>
-          <h3 className="mb-3 text-lg font-semibold" style={{ color: textColor, ...hStyle }}>
-            {title}
-          </h3>
-          <div className="flex h-40 items-center justify-center rounded-lg bg-neutral-100">
-            <MapPin className="size-8 text-neutral-300" />
+        <div style={{ padding: style?.padding ? undefined : "3rem 2rem", ...wrapperStyle }}>
+          <div className="mx-auto max-w-4xl">
+            <InlineEditable
+              value={(section.data.title as string) ?? ""}
+              onChange={(v) => updateField("title", v)}
+              placeholder="Our Locations"
+              tag="h3"
+              style={{ color: textColor, fontSize: "1.5rem", fontWeight: "600", marginBottom: "1.5rem", ...hStyle }}
+            />
+            <div className="flex h-64 items-center justify-center overflow-hidden rounded-xl border border-neutral-200 bg-gradient-to-br from-neutral-50 to-neutral-100">
+              <div className="flex flex-col items-center gap-2 text-neutral-300">
+                <MapPin className="size-10" />
+                <span className="text-sm font-medium">Map Preview</span>
+              </div>
+            </div>
           </div>
         </div>
       );
@@ -257,21 +336,38 @@ export function SectionPreview({ section, themeAccent }: SectionPreviewProps) {
     case "features": {
       const featureItems = (section.data.items as string[]) ?? [];
       return (
-        <div style={wrapperStyle}>
-          <h3 className="mb-3 text-lg font-semibold" style={{ color: textColor, ...hStyle }}>
-            {title}
-          </h3>
-          <div className="grid grid-cols-2 gap-2">
-            {featureItems.map((item, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-2 rounded-lg bg-neutral-50 px-3 py-2 text-sm"
-                style={{ color: textColor ?? "#525252" }}
-              >
-                <div className="size-2 shrink-0 rounded-full" style={{ backgroundColor: accent }} />
-                {item || "Feature item"}
-              </div>
-            ))}
+        <div style={{ padding: style?.padding ? undefined : "3rem 2rem", ...wrapperStyle }}>
+          <div className="mx-auto max-w-4xl">
+            <InlineEditable
+              value={(section.data.title as string) ?? ""}
+              onChange={(v) => updateField("title", v)}
+              placeholder="What We Offer"
+              tag="h3"
+              style={{ color: textColor, fontSize: "1.5rem", fontWeight: "600", marginBottom: "1.5rem", ...hStyle }}
+            />
+            <div className="grid grid-cols-2 gap-3">
+              {featureItems.map((item, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 rounded-xl border border-neutral-100 bg-white px-4 py-3 shadow-sm"
+                >
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${accent}15` }}>
+                    <div className="size-2.5 rounded-full" style={{ backgroundColor: accent }} />
+                  </div>
+                  <InlineEditable
+                    value={item}
+                    onChange={(v) => {
+                      const updated = [...featureItems];
+                      updated[i] = v;
+                      onUpdate?.(section.id, { items: updated });
+                    }}
+                    placeholder="Feature item"
+                    tag="span"
+                    style={{ color: textColor ?? "#525252", fontSize: "0.9375rem" }}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       );
@@ -280,39 +376,53 @@ export function SectionPreview({ section, themeAccent }: SectionPreviewProps) {
     case "cta":
       return (
         <div
-          className="overflow-hidden rounded-lg p-8 text-center"
+          className="overflow-hidden text-center"
           style={{
             backgroundColor: style?.backgroundColor ?? "#171717",
+            padding: style?.padding ? undefined : "4rem 2rem",
             ...wrapperStyle,
           }}
         >
-          <h3
-            className="text-xl font-bold"
-            style={{ color: textColor ?? "#ffffff", ...hStyle }}
-          >
-            {section.data.title as string}
-          </h3>
-          <p
-            className="mt-1 text-sm"
-            style={{ color: textColor ? `${textColor}99` : "#9ca3af" }}
-          >
-            {section.data.subtitle as string}
-          </p>
-          <div
-            className="mt-4 inline-block px-6 py-2 text-sm font-medium"
-            style={{ backgroundColor: accent, color: "#fff", borderRadius: "9999px", ...bStyle }}
-          >
-            {section.data.buttonText as string}
+          <div className="mx-auto max-w-2xl">
+            <InlineEditable
+              value={(section.data.title as string) ?? ""}
+              onChange={(v) => updateField("title", v)}
+              placeholder="Ready to Book?"
+              tag="h3"
+              style={{ color: textColor ?? "#ffffff", fontSize: "2rem", fontWeight: "700", lineHeight: "1.2", ...hStyle }}
+            />
+            <InlineEditable
+              value={(section.data.subtitle as string) ?? ""}
+              onChange={(v) => updateField("subtitle", v)}
+              placeholder="Reserve your stay today"
+              tag="p"
+              className="mt-3"
+              style={{ color: textColor ? `${textColor}99` : "#9ca3af", fontSize: "1.125rem", lineHeight: "1.6" }}
+            />
+            <div className="mt-6">
+              <InlineEditable
+                value={(section.data.buttonText as string) ?? ""}
+                onChange={(v) => updateField("buttonText", v)}
+                placeholder="Book Now"
+                tag="span"
+                className="inline-block font-medium"
+                style={{ backgroundColor: accent, color: "#fff", borderRadius: "9999px", padding: "0.75rem 2rem", ...bStyle }}
+              />
+            </div>
           </div>
         </div>
       );
 
-    default:
+    default: {
+      const sType = section.type as string;
       return (
-        <div className="flex items-center gap-3 p-4" style={wrapperStyle}>
-          <Icon className="size-5 text-neutral-400" />
-          <span className="text-sm font-medium text-neutral-600">{def.label}</span>
+        <div className="flex items-center gap-3 px-6 py-8" style={wrapperStyle}>
+          <LayoutGrid className="size-5 text-neutral-400" />
+          <span className="text-sm font-medium text-neutral-600">
+            {(SECTION_DEFINITIONS as Record<string, { label: string }>)[sType]?.label ?? "Unknown Section"}
+          </span>
         </div>
       );
+    }
   }
 }

@@ -642,9 +642,9 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig, initia
             <SectionSidebar onAdd={addSection} sidebarPrefix={SIDEBAR_PREFIX} />
 
             <div
-              className="flex-1 overflow-y-auto p-8 transition-colors"
+              className="flex-1 overflow-y-auto p-6 transition-colors"
               style={{
-                backgroundColor: previewDevice !== "desktop" ? "#e5e5e5" : (themeBodyBg === "#ffffff" ? "#f5f5f5" : themeBodyBg),
+                backgroundColor: "#e5e7eb",
                 fontFamily: `'${themeFont}', system-ui, sans-serif`,
               }}
               onClick={(e) => {
@@ -652,15 +652,12 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig, initia
               }}
             >
               <div
-                className="mx-auto transition-all duration-300 ease-in-out"
+                className="mx-auto overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 ease-in-out"
                 style={{
                   maxWidth: DEVICE_CONFIG[previewDevice].maxWidth,
-                  backgroundColor: previewDevice !== "desktop" ? (themeBodyBg === "#ffffff" ? "#f5f5f5" : themeBodyBg) : undefined,
-                  borderRadius: previewDevice !== "desktop" ? "12px" : undefined,
-                  boxShadow: previewDevice !== "desktop" ? "0 4px 24px rgba(0,0,0,0.12)" : undefined,
-                  minHeight: previewDevice !== "desktop" ? "70vh" : undefined,
-                  padding: previewDevice !== "desktop" ? "0" : undefined,
-                  overflow: previewDevice !== "desktop" ? "hidden" : undefined,
+                  backgroundColor: themeBodyBg,
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1), 0 4px 20px rgba(0,0,0,0.06)",
+                  minHeight: "60vh",
                 }}
               >
                 <CanvasDropZone
@@ -848,7 +845,7 @@ function CanvasDropZone({
           items={sections.map((s) => s.id)}
           strategy={verticalListSortingStrategy}
         >
-          <div className="space-y-3">
+          <div className="space-y-0 overflow-hidden rounded-lg bg-white">
             {sections.map((section) => (
               <SortableSection
                 key={section.id}
