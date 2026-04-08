@@ -175,6 +175,8 @@ export default async function PropertyDetailPage({
               accentColor={s.accentColor}
               textColor={s.textColor}
               radius={radius}
+              blockedDates={blockedDates}
+              bookedDates={bookedDates}
             />
           </div>
         </div>
