@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { Section } from "@/types/builder";
+import { getHeadingStyle } from "./section-renderer";
 import Link from "next/link";
 import { MapPin, Users, Star } from "lucide-react";
 
@@ -32,7 +33,7 @@ export function PropertyGridSection({ section, accent, textColor, wrapperStyle, 
       <div className="mx-auto max-w-6xl px-6">
         <h2
           className="mb-8 text-3xl font-bold"
-          style={{ color: textColor, textAlign: "inherit" }}
+          style={{ color: textColor, textAlign: "inherit", ...getHeadingStyle(section.style) }}
         >
           {title}
         </h2>

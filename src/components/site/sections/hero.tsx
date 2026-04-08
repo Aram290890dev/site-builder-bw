@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { Section } from "@/types/builder";
+import { getHeadingStyle, getButtonStyle } from "./section-renderer";
 import Link from "next/link";
 
 interface Props {
@@ -16,6 +17,8 @@ export function HeroSection({ section, accent, textColor, wrapperStyle, siteSubd
   const ctaText = section.data.ctaText as string;
   const bgImage = section.style?.backgroundImage;
   const overlay = section.style?.backgroundOverlay ?? 0.4;
+  const headingStyle = getHeadingStyle(section.style);
+  const buttonStyle = getButtonStyle(section.style, accent);
 
   return (
     <section
@@ -31,7 +34,7 @@ export function HeroSection({ section, accent, textColor, wrapperStyle, siteSubd
       <div className="relative mx-auto max-w-3xl px-6 py-24 text-center">
         <h1
           className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl"
-          style={{ color: textColor ?? "#ffffff" }}
+          style={{ color: textColor ?? "#ffffff", ...headingStyle }}
         >
           {title}
         </h1>
@@ -46,8 +49,14 @@ export function HeroSection({ section, accent, textColor, wrapperStyle, siteSubd
         {ctaText && (
           <Link
             href={`/site/${siteSubdomain}/properties`}
-            className="mt-8 inline-block rounded-full px-8 py-3 text-base font-semibold text-white transition-transform hover:scale-105"
-            style={{ backgroundColor: accent }}
+            className="mt-8 inline-block font-semibold transition-transform hover:scale-105"
+            style={{
+              backgroundColor: accent,
+              color: "#ffffff",
+              borderRadius: "9999px",
+              padding: "0.75rem 2rem",
+              ...buttonStyle,
+            }}
           >
             {ctaText}
           </Link>

@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { Section } from "@/types/builder";
+import { getHeadingStyle } from "./section-renderer";
 import { Images } from "lucide-react";
 
 interface Props {
@@ -16,7 +17,7 @@ export function GallerySection({ section, accent, textColor, wrapperStyle }: Pro
   return (
     <section className="py-16" style={wrapperStyle}>
       <div className="mx-auto max-w-6xl px-6">
-        <h2 className="mb-8 text-3xl font-bold" style={{ color: textColor, textAlign: "inherit" }}>
+        <h2 className="mb-8 text-3xl font-bold" style={{ color: textColor, textAlign: "inherit", ...getHeadingStyle(section.style) }}>
           {title}
         </h2>
         {images.length > 0 ? (

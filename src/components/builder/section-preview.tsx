@@ -28,22 +28,67 @@ const ICON_MAP: Record<string, LucideIcon> = {
 
 const PADDING_MAP = { sm: "1rem", md: "2rem", lg: "3rem", xl: "5rem" };
 const RADIUS_MAP = { none: "0", sm: "0.5rem", md: "0.75rem", lg: "1rem" };
+const HEADING_SIZE_MAP = { sm: "0.875rem", md: "1.125rem", lg: "1.25rem", xl: "1.5rem", "2xl": "1.75rem" };
+const HEADING_WEIGHT_MAP = { light: "300", normal: "400", medium: "500", semibold: "600", bold: "700", black: "900" };
+const LETTER_SPACING_MAP = { tighter: "-0.05em", tight: "-0.025em", normal: "0", wide: "0.025em", wider: "0.05em" };
+const FONT_MAP = { sans: "system-ui, sans-serif", serif: "Georgia, serif", mono: "monospace", display: "Georgia, serif" };
+const GRADIENT_DIR_MAP = { "to-b": "to bottom", "to-r": "to right", "to-br": "to bottom right", "to-bl": "to bottom left" };
 
 function getWrapperStyle(style?: SectionStyle): CSSProperties {
   if (!style) return {};
-
   const css: CSSProperties = {};
 
-  if (style.backgroundColor) css.backgroundColor = style.backgroundColor;
+  if (style.gradient) {
+    css.background = `linear-gradient(${GRADIENT_DIR_MAP[style.gradient.direction]}, ${style.gradient.from}, ${style.gradient.to})`;
+  } else if (style.backgroundColor) {
+    css.backgroundColor = style.backgroundColor;
+  }
+
   if (style.textColor) css.color = style.textColor;
   if (style.textAlign) css.textAlign = style.textAlign;
   if (style.padding) css.padding = PADDING_MAP[style.padding];
   if (style.borderRadius) css.borderRadius = RADIUS_MAP[style.borderRadius];
+  if (style.fontOverride) css.fontFamily = FONT_MAP[style.fontOverride];
   if (style.backgroundImage) {
     css.backgroundImage = `url(${style.backgroundImage})`;
     css.backgroundSize = "cover";
     css.backgroundPosition = "center";
   }
+  return css;
+}
+
+function getHeadingStyle(style?: SectionStyle): CSSProperties {
+  if (!style) return {};
+  const css: CSSProperties = {};
+  if (style.headingSize) css.fontSize = HEADING_SIZE_MAP[style.headingSize];
+  if (style.headingWeight) css.fontWeight = HEADING_WEIGHT_MAP[style.headingWeight];
+  if (style.letterSpacing) css.letterSpacing = LETTER_SPACING_MAP[style.letterSpacing];
+  return css;
+}
+
+function getButtonStyle(style?: SectionStyle, accent?: string): CSSProperties {
+  if (!style) return {};
+  const a = accent ?? style.accentColor ?? "#4f46e5";
+  const css: CSSProperties = {};
+
+  if (style.buttonShape === "pill") css.borderRadius = "9999px";
+  else if (style.buttonShape === "square") css.borderRadius = "0";
+  else css.borderRadius = "9999px";
+
+  if (style.buttonVariant === "outline") {
+    css.backgroundColor = "transparent";
+    css.color = a;
+    css.border = `2px solid ${a}`;
+  } else if (style.buttonVariant === "ghost") {
+    css.backgroundColor = "transparent";
+    css.color = a;
+  } else {
+    css.backgroundColor = a;
+    css.color = "#ffffff";
+  }
+
+  if (style.buttonSize === "sm") { css.padding = "0.375rem 1rem"; css.fontSize = "0.75rem"; }
+  else if (style.buttonSize === "lg") { css.padding = "0.625rem 1.75rem"; css.fontSize = "0.875rem"; }
 
   return css;
 }
@@ -60,6 +105,8 @@ export function SectionPreview({ section }: SectionPreviewProps) {
   const wrapperStyle = getWrapperStyle(style);
   const accent = style?.accentColor ?? "#4f46e5";
   const textColor = style?.textColor;
+  const hStyle = getHeadingStyle(style);
+  const bStyle = getButtonStyle(style, accent);
 
   switch (section.type) {
     case "hero":
@@ -74,15 +121,13 @@ export function SectionPreview({ section }: SectionPreviewProps) {
           {style?.backgroundImage && (
             <div
               className="absolute inset-0"
-              style={{
-                backgroundColor: `rgba(0,0,0,${style.backgroundOverlay ?? 0.4})`,
-              }}
+              style={{ backgroundColor: `rgba(0,0,0,${style.backgroundOverlay ?? 0.4})` }}
             />
           )}
           <div className="relative">
             <h2
               className="text-2xl font-bold"
-              style={{ color: textColor ?? "#1e1b4b" }}
+              style={{ color: textColor ?? "#1e1b4b", ...hStyle }}
             >
               {section.data.title as string}
             </h2>
@@ -93,8 +138,8 @@ export function SectionPreview({ section }: SectionPreviewProps) {
               {section.data.subtitle as string}
             </p>
             <div
-              className="mt-4 inline-block rounded-full px-6 py-2 text-sm font-medium text-white"
-              style={{ backgroundColor: accent }}
+              className="mt-4 inline-block px-6 py-2 text-sm font-medium"
+              style={{ backgroundColor: accent, color: "#fff", borderRadius: "9999px", ...bStyle }}
             >
               {section.data.ctaText as string}
             </div>
@@ -106,7 +151,7 @@ export function SectionPreview({ section }: SectionPreviewProps) {
       const cols = (section.data.columns as number) ?? 3;
       return (
         <div style={wrapperStyle}>
-          <h3 className="mb-3 text-lg font-semibold" style={{ color: textColor }}>
+          <h3 className="mb-3 text-lg font-semibold" style={{ color: textColor, ...hStyle }}>
             {title}
           </h3>
           <div
@@ -114,10 +159,7 @@ export function SectionPreview({ section }: SectionPreviewProps) {
             style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
           >
             {Array.from({ length: cols }).map((_, i) => (
-              <div
-                key={i}
-                className="rounded-lg border border-neutral-200 bg-neutral-50 p-3"
-              >
+              <div key={i} className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
                 <div className="mb-2 h-20 rounded-md bg-neutral-200" />
                 <div className="h-3 w-2/3 rounded bg-neutral-200" />
                 <div className="mt-1 h-2 w-1/2 rounded bg-neutral-100" />
@@ -131,15 +173,12 @@ export function SectionPreview({ section }: SectionPreviewProps) {
     case "gallery":
       return (
         <div style={wrapperStyle}>
-          <h3 className="mb-3 text-lg font-semibold" style={{ color: textColor }}>
+          <h3 className="mb-3 text-lg font-semibold" style={{ color: textColor, ...hStyle }}>
             {title}
           </h3>
           <div className="grid grid-cols-4 gap-2">
             {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="flex h-20 items-center justify-center rounded-lg bg-neutral-100"
-              >
+              <div key={i} className="flex h-20 items-center justify-center rounded-lg bg-neutral-100">
                 <Images className="size-5 text-neutral-300" />
               </div>
             ))}
@@ -148,49 +187,29 @@ export function SectionPreview({ section }: SectionPreviewProps) {
       );
 
     case "testimonials": {
-      const items =
-        (section.data.items as Array<{
-          name: string;
-          text: string;
-          rating: number;
-        }>) ?? [];
+      const items = (section.data.items as Array<{ name: string; text: string; rating: number }>) ?? [];
       const firstItem = items[0];
       return (
         <div style={wrapperStyle}>
-          <h3 className="mb-3 text-lg font-semibold" style={{ color: textColor }}>
+          <h3 className="mb-3 text-lg font-semibold" style={{ color: textColor, ...hStyle }}>
             {title}
           </h3>
           {firstItem && (
             <div className="rounded-lg bg-neutral-50 p-4">
               <Quote className="mb-2 size-5" style={{ color: `${accent}66` }} />
-              <p className="text-sm italic text-neutral-600">
-                &ldquo;{firstItem.text}&rdquo;
-              </p>
+              <p className="text-sm italic text-neutral-600">&ldquo;{firstItem.text}&rdquo;</p>
               <div className="mt-2 flex items-center justify-between">
-                <span className="text-xs font-medium text-neutral-500">
-                  — {firstItem.name}
-                </span>
+                <span className="text-xs font-medium text-neutral-500">— {firstItem.name}</span>
                 <div className="flex gap-0.5">
                   {[1, 2, 3, 4, 5].map((n) => (
-                    <span
-                      key={n}
-                      className={`text-xs ${
-                        n <= firstItem.rating
-                          ? "text-amber-400"
-                          : "text-neutral-200"
-                      }`}
-                    >
-                      ★
-                    </span>
+                    <span key={n} className={`text-xs ${n <= firstItem.rating ? "text-amber-400" : "text-neutral-200"}`}>★</span>
                   ))}
                 </div>
               </div>
             </div>
           )}
           {items.length > 1 && (
-            <p className="mt-2 text-xs text-neutral-400">
-              +{items.length - 1} more review{items.length > 2 ? "s" : ""}
-            </p>
+            <p className="mt-2 text-xs text-neutral-400">+{items.length - 1} more review{items.length > 2 ? "s" : ""}</p>
           )}
         </div>
       );
@@ -199,7 +218,7 @@ export function SectionPreview({ section }: SectionPreviewProps) {
     case "contact":
       return (
         <div style={wrapperStyle}>
-          <h3 className="mb-3 text-lg font-semibold" style={{ color: textColor }}>
+          <h3 className="mb-3 text-lg font-semibold" style={{ color: textColor, ...hStyle }}>
             {title}
           </h3>
           <div className="space-y-2">
@@ -213,8 +232,8 @@ export function SectionPreview({ section }: SectionPreviewProps) {
               Message...
             </div>
             <div
-              className="h-9 rounded-lg flex items-center justify-center text-sm font-medium text-white"
-              style={{ backgroundColor: accent }}
+              className="h-9 flex items-center justify-center text-sm font-medium"
+              style={{ backgroundColor: accent, color: "#fff", borderRadius: "0.5rem", ...bStyle }}
             >
               Send Message
             </div>
@@ -225,7 +244,7 @@ export function SectionPreview({ section }: SectionPreviewProps) {
     case "map":
       return (
         <div style={wrapperStyle}>
-          <h3 className="mb-3 text-lg font-semibold" style={{ color: textColor }}>
+          <h3 className="mb-3 text-lg font-semibold" style={{ color: textColor, ...hStyle }}>
             {title}
           </h3>
           <div className="flex h-40 items-center justify-center rounded-lg bg-neutral-100">
@@ -238,7 +257,7 @@ export function SectionPreview({ section }: SectionPreviewProps) {
       const featureItems = (section.data.items as string[]) ?? [];
       return (
         <div style={wrapperStyle}>
-          <h3 className="mb-3 text-lg font-semibold" style={{ color: textColor }}>
+          <h3 className="mb-3 text-lg font-semibold" style={{ color: textColor, ...hStyle }}>
             {title}
           </h3>
           <div className="grid grid-cols-2 gap-2">
@@ -248,10 +267,7 @@ export function SectionPreview({ section }: SectionPreviewProps) {
                 className="flex items-center gap-2 rounded-lg bg-neutral-50 px-3 py-2 text-sm"
                 style={{ color: textColor ?? "#525252" }}
               >
-                <div
-                  className="size-2 shrink-0 rounded-full"
-                  style={{ backgroundColor: accent }}
-                />
+                <div className="size-2 shrink-0 rounded-full" style={{ backgroundColor: accent }} />
                 {item || "Feature item"}
               </div>
             ))}
@@ -271,7 +287,7 @@ export function SectionPreview({ section }: SectionPreviewProps) {
         >
           <h3
             className="text-xl font-bold"
-            style={{ color: textColor ?? "#ffffff" }}
+            style={{ color: textColor ?? "#ffffff", ...hStyle }}
           >
             {section.data.title as string}
           </h3>
@@ -282,8 +298,8 @@ export function SectionPreview({ section }: SectionPreviewProps) {
             {section.data.subtitle as string}
           </p>
           <div
-            className="mt-4 inline-block rounded-full px-6 py-2 text-sm font-medium text-white"
-            style={{ backgroundColor: accent }}
+            className="mt-4 inline-block px-6 py-2 text-sm font-medium"
+            style={{ backgroundColor: accent, color: "#fff", borderRadius: "9999px", ...bStyle }}
           >
             {section.data.buttonText as string}
           </div>
@@ -294,9 +310,7 @@ export function SectionPreview({ section }: SectionPreviewProps) {
       return (
         <div className="flex items-center gap-3 p-4" style={wrapperStyle}>
           <Icon className="size-5 text-neutral-400" />
-          <span className="text-sm font-medium text-neutral-600">
-            {def.label}
-          </span>
+          <span className="text-sm font-medium text-neutral-600">{def.label}</span>
         </div>
       );
   }

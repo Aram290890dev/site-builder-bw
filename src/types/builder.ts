@@ -19,6 +19,37 @@ export interface SectionStyle {
   borderRadius?: "none" | "sm" | "md" | "lg";
   backgroundImage?: string;
   backgroundOverlay?: number;
+
+  // Typography
+  headingSize?: "sm" | "md" | "lg" | "xl" | "2xl";
+  headingWeight?: "light" | "normal" | "medium" | "semibold" | "bold" | "black";
+  letterSpacing?: "tighter" | "tight" | "normal" | "wide" | "wider";
+  fontOverride?: "sans" | "serif" | "mono" | "display";
+
+  // Button
+  buttonShape?: "rounded" | "pill" | "square";
+  buttonVariant?: "solid" | "outline" | "ghost";
+  buttonSize?: "sm" | "md" | "lg";
+
+  // Animations
+  animation?: "none" | "fade-in" | "slide-up" | "slide-left" | "slide-right" | "zoom-in";
+  animationSpeed?: "fast" | "normal" | "slow";
+
+  // Gradient
+  gradient?: { from: string; to: string; direction: "to-b" | "to-r" | "to-br" | "to-bl" };
+
+  // Width
+  sectionWidth?: "full" | "contained" | "narrow";
+
+  // Divider
+  divider?: "none" | "line" | "wave" | "angle" | "dots";
+  dividerColor?: string;
+
+  // Visibility
+  hidden?: boolean;
+
+  // Custom CSS
+  customCSS?: string;
 }
 
 export interface Section {

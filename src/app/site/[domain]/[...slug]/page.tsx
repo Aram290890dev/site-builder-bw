@@ -25,14 +25,17 @@ export default async function DynamicSitePage({
     );
   }
 
+  const visibleSections = page.sections.filter((s) => !s.style?.hidden);
+
   return (
     <main>
-      {page.sections.map((section) => (
+      {visibleSections.map((section, i) => (
         <SectionRenderer
           key={section.id}
           section={section}
           siteSubdomain={domain}
           properties={site.properties}
+          isLast={i === visibleSections.length - 1}
         />
       ))}
     </main>

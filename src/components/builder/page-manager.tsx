@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { BuilderPage, Section } from "@/types/builder";
 import { SECTION_DEFINITIONS } from "@/types/builder";
 import {
   Plus,
-  FileText,
   Phone,
   Users,
   Shield,
   ScrollText,
   File,
+  X,
 } from "lucide-react";
 
 function slugify(name: string) {
@@ -31,7 +31,7 @@ function makeSection(type: Section["type"], overrides: Record<string, unknown> =
 
 interface PagePreset {
   name: string;
-  icon: typeof FileText;
+  icon: typeof Phone;
   slug: string;
   sections: () => Section[];
 }
@@ -42,16 +42,8 @@ const PAGE_PRESETS: PagePreset[] = [
     icon: Phone,
     slug: "contact",
     sections: () => [
-      makeSection("hero", {
-        title: "Get in Touch",
-        subtitle: "We'd love to hear from you",
-        ctaText: "",
-      }),
-      makeSection("contact", {
-        title: "Send Us a Message",
-        email: "hello@example.com",
-        phone: "+1 (555) 000-0000",
-      }),
+      makeSection("hero", { title: "Get in Touch", subtitle: "We'd love to hear from you", ctaText: "" }),
+      makeSection("contact", { title: "Send Us a Message", email: "hello@example.com", phone: "+1 (555) 000-0000" }),
       makeSection("map", { title: "Find Us" }),
     ],
   },
@@ -60,22 +52,9 @@ const PAGE_PRESETS: PagePreset[] = [
     icon: Users,
     slug: "about-us",
     sections: () => [
-      makeSection("hero", {
-        title: "About Us",
-        subtitle: "Our story and what drives us",
-        ctaText: "",
-      }),
-      makeSection("features", {
-        title: "Our Values",
-        items: ["Hospitality First", "Attention to Detail", "Local Experience", "Sustainable Tourism"],
-      }),
-      makeSection("testimonials", {
-        title: "What Our Guests Say",
-        items: [
-          { name: "Sarah M.", text: "An unforgettable stay!", rating: 5 },
-          { name: "James L.", text: "Incredible hospitality and beautiful property.", rating: 5 },
-        ],
-      }),
+      makeSection("hero", { title: "About Us", subtitle: "Our story and what drives us", ctaText: "" }),
+      makeSection("features", { title: "Our Values", items: ["Hospitality First", "Attention to Detail", "Local Experience", "Sustainable Tourism"] }),
+      makeSection("testimonials", { title: "What Our Guests Say", items: [{ name: "Sarah M.", text: "An unforgettable stay!", rating: 5 }, { name: "James L.", text: "Incredible hospitality.", rating: 5 }] }),
     ],
   },
   {
@@ -83,22 +62,8 @@ const PAGE_PRESETS: PagePreset[] = [
     icon: ScrollText,
     slug: "terms",
     sections: () => [
-      makeSection("hero", {
-        title: "Terms & Conditions",
-        subtitle: "Please read our terms carefully",
-        ctaText: "",
-      }),
-      makeSection("features", {
-        title: "Booking Terms",
-        items: [
-          "Reservations must be made at least 48 hours in advance",
-          "Full payment is due at time of booking",
-          "Free cancellation up to 7 days before check-in",
-          "Check-in: 3:00 PM — Check-out: 11:00 AM",
-          "Maximum occupancy must not be exceeded",
-          "Pets are not allowed unless stated otherwise",
-        ],
-      }),
+      makeSection("hero", { title: "Terms & Conditions", subtitle: "Please read our terms carefully", ctaText: "" }),
+      makeSection("features", { title: "Booking Terms", items: ["Reservations must be made at least 48 hours in advance", "Full payment is due at time of booking", "Free cancellation up to 7 days before check-in", "Check-in: 3:00 PM — Check-out: 11:00 AM", "Maximum occupancy must not be exceeded", "Pets are not allowed unless stated otherwise"] }),
     ],
   },
   {
@@ -106,22 +71,8 @@ const PAGE_PRESETS: PagePreset[] = [
     icon: Shield,
     slug: "privacy",
     sections: () => [
-      makeSection("hero", {
-        title: "Privacy Policy",
-        subtitle: "How we handle your information",
-        ctaText: "",
-      }),
-      makeSection("features", {
-        title: "What We Collect",
-        items: [
-          "Name and contact information for bookings",
-          "Payment details processed securely via third parties",
-          "Usage data to improve our services",
-          "We never sell your personal information",
-          "You can request data deletion at any time",
-          "Cookies are used for essential site functionality",
-        ],
-      }),
+      makeSection("hero", { title: "Privacy Policy", subtitle: "How we handle your information", ctaText: "" }),
+      makeSection("features", { title: "What We Collect", items: ["Name and contact information for bookings", "Payment details processed securely via third parties", "Usage data to improve our services", "We never sell your personal information", "You can request data deletion at any time", "Cookies are used for essential site functionality"] }),
     ],
   },
 ];
@@ -134,8 +85,18 @@ interface Props {
 export function PageManager({ existingPages, onAddPage }: Props) {
   const [open, setOpen] = useState(false);
   const [customName, setCustomName] = useState("");
+  const modalRef = useRef<HTMLDivElement>(null);
 
   const existingSlugs = new Set(existingPages.map((p) => p.slug));
+
+  useEffect(() => {
+    if (!open) return;
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [open]);
 
   function createPage(name: string, slug: string, sections: Section[]) {
     let finalSlug = slug;
@@ -144,100 +105,117 @@ export function PageManager({ existingPages, onAddPage }: Props) {
       finalSlug = `${slug}-${counter}`;
       counter++;
     }
-
-    const page: BuilderPage = {
+    onAddPage({
       id: `page-${Date.now()}`,
       name,
       slug: `/${finalSlug}`,
       sections,
-    };
-
-    onAddPage(page);
+    });
     setOpen(false);
     setCustomName("");
   }
 
-  function handlePreset(preset: PagePreset) {
-    createPage(preset.name, preset.slug, preset.sections());
-  }
-
-  function handleCustom() {
-    const name = customName.trim();
-    if (!name) return;
-    createPage(name, slugify(name), []);
-  }
-
   return (
-    <div className="relative">
+    <>
       <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-1 px-2 py-2 text-xs font-medium text-neutral-400 transition-colors hover:text-indigo-600"
+        onClick={() => setOpen(true)}
+        className="flex size-7 items-center justify-center rounded-lg border border-dashed border-neutral-300 text-neutral-400 transition-all hover:border-indigo-400 hover:bg-indigo-50 hover:text-indigo-600"
+        title="Add page"
       >
         <Plus className="size-3.5" />
-        Add Page
       </button>
 
       {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full z-50 mt-1 w-64 rounded-xl border border-neutral-200 bg-white p-3 shadow-xl">
-            <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
-              Presets
-            </div>
-            <div className="space-y-1">
-              {PAGE_PRESETS.map((preset) => {
-                const exists = existingSlugs.has(`/${preset.slug}`);
-                return (
-                  <button
-                    key={preset.slug}
-                    onClick={() => handlePreset(preset)}
-                    disabled={exists}
-                    className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
-                      exists
-                        ? "cursor-not-allowed text-neutral-300"
-                        : "text-neutral-700 hover:bg-neutral-50"
-                    }`}
-                  >
-                    <preset.icon className="size-4 shrink-0" />
-                    <span>{preset.name}</span>
-                    {exists && <span className="ml-auto text-[10px] text-neutral-300">Added</span>}
-                  </button>
-                );
-              })}
-              <button
-                onClick={() => createPage("Blank Page", `page-${Date.now()}`, [])}
-                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm text-neutral-700 transition-colors hover:bg-neutral-50"
-              >
-                <File className="size-4 shrink-0" />
-                <span>Blank Page</span>
-              </button>
-            </div>
-
-            <div className="mt-3 border-t border-neutral-100 pt-3">
-              <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
-                Custom Page
-              </div>
-              <div className="flex gap-1.5">
-                <input
-                  type="text"
-                  value={customName}
-                  onChange={(e) => setCustomName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleCustom()}
-                  placeholder="Page name..."
-                  className="flex-1 rounded-lg border border-neutral-200 px-2.5 py-1.5 text-sm outline-none focus:border-indigo-300"
-                />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-[2px]">
+          <div
+            ref={modalRef}
+            className="relative w-full max-w-md animate-in fade-in zoom-in-95 duration-150"
+          >
+            <div className="rounded-2xl border border-neutral-200 bg-white shadow-2xl shadow-neutral-300/30">
+              <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
+                <div>
+                  <h3 className="text-sm font-semibold">Add a new page</h3>
+                  <p className="mt-0.5 text-xs text-neutral-400">Choose a template or start blank</p>
+                </div>
                 <button
-                  onClick={handleCustom}
-                  disabled={!customName.trim()}
-                  className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-indigo-700 disabled:opacity-40"
+                  onClick={() => setOpen(false)}
+                  className="flex size-7 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600"
                 >
-                  Add
+                  <X className="size-4" />
                 </button>
+              </div>
+
+              <div className="p-4">
+                <div className="grid grid-cols-2 gap-2">
+                  {PAGE_PRESETS.map((preset) => {
+                    const exists = existingSlugs.has(`/${preset.slug}`);
+                    return (
+                      <button
+                        key={preset.slug}
+                        onClick={() => createPage(preset.name, preset.slug, preset.sections())}
+                        disabled={exists}
+                        className={`group flex items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition-all ${
+                          exists
+                            ? "cursor-not-allowed border-neutral-100 bg-neutral-50 opacity-50"
+                            : "border-neutral-200 bg-white hover:border-indigo-200 hover:bg-indigo-50/50 hover:shadow-sm"
+                        }`}
+                      >
+                        <div className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${
+                          exists ? "bg-neutral-100 text-neutral-300" : "bg-neutral-100 text-neutral-500 group-hover:bg-indigo-100 group-hover:text-indigo-600"
+                        }`}>
+                          <preset.icon className="size-4" />
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium">{preset.name}</span>
+                          {exists && <span className="ml-1.5 text-[10px] text-neutral-400">Added</span>}
+                        </div>
+                      </button>
+                    );
+                  })}
+                  <button
+                    onClick={() => createPage("Blank Page", `page-${Date.now()}`, [])}
+                    className="group flex items-center gap-3 rounded-xl border border-neutral-200 bg-white px-3.5 py-3 text-left transition-all hover:border-indigo-200 hover:bg-indigo-50/50 hover:shadow-sm"
+                  >
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500 group-hover:bg-indigo-100 group-hover:text-indigo-600">
+                      <File className="size-4" />
+                    </div>
+                    <span className="text-sm font-medium">Blank Page</span>
+                  </button>
+                </div>
+
+                <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50/50 p-3">
+                  <label className="mb-1.5 block text-xs font-medium text-neutral-500">Custom page name</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customName}
+                      onChange={(e) => setCustomName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          const name = customName.trim();
+                          if (name) createPage(name, slugify(name), []);
+                        }
+                      }}
+                      placeholder="e.g. FAQ, Gallery, Services..."
+                      className="flex-1 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+                    />
+                    <button
+                      onClick={() => {
+                        const name = customName.trim();
+                        if (name) createPage(name, slugify(name), []);
+                      }}
+                      disabled={!customName.trim()}
+                      className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:opacity-40"
+                    >
+                      Create
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
-    </div>
+    </>
   );
 }

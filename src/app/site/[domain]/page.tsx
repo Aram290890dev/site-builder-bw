@@ -22,14 +22,17 @@ export default async function SiteHomePage({
     );
   }
 
+  const visibleSections = homePage.sections.filter((s) => !s.style?.hidden);
+
   return (
     <main>
-      {homePage.sections.map((section) => (
+      {visibleSections.map((section, i) => (
         <SectionRenderer
           key={section.id}
           section={section}
           siteSubdomain={domain}
           properties={site.properties}
+          isLast={i === visibleSections.length - 1}
         />
       ))}
     </main>

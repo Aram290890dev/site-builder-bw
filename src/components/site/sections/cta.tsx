@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { Section } from "@/types/builder";
+import { getHeadingStyle, getButtonStyle } from "./section-renderer";
 import Link from "next/link";
 
 interface Props {
@@ -14,6 +15,8 @@ export function CTASection({ section, accent, textColor, wrapperStyle, siteSubdo
   const title = section.data.title as string;
   const subtitle = section.data.subtitle as string;
   const buttonText = section.data.buttonText as string;
+  const headingStyle = getHeadingStyle(section.style);
+  const buttonStyle = getButtonStyle(section.style, accent);
 
   return (
     <section
@@ -26,7 +29,7 @@ export function CTASection({ section, accent, textColor, wrapperStyle, siteSubdo
       <div className="mx-auto max-w-2xl px-6 text-center">
         <h2
           className="text-3xl font-bold sm:text-4xl"
-          style={{ color: textColor ?? "#ffffff" }}
+          style={{ color: textColor ?? "#ffffff", ...headingStyle }}
         >
           {title}
         </h2>
@@ -41,8 +44,14 @@ export function CTASection({ section, accent, textColor, wrapperStyle, siteSubdo
         {buttonText && (
           <Link
             href={`/site/${siteSubdomain}/properties`}
-            className="mt-8 inline-block rounded-full px-8 py-3 text-base font-semibold text-white transition-transform hover:scale-105"
-            style={{ backgroundColor: accent }}
+            className="mt-8 inline-block font-semibold transition-transform hover:scale-105"
+            style={{
+              backgroundColor: accent,
+              color: "#ffffff",
+              borderRadius: "9999px",
+              padding: "0.75rem 2rem",
+              ...buttonStyle,
+            }}
           >
             {buttonText}
           </Link>

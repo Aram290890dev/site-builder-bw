@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { Section } from "@/types/builder";
+import { getHeadingStyle } from "./section-renderer";
 import { MapPin } from "lucide-react";
 
 interface Props {
@@ -15,7 +16,7 @@ export function MapSection({ section, accent, textColor, wrapperStyle }: Props) 
   return (
     <section className="py-16" style={wrapperStyle}>
       <div className="mx-auto max-w-6xl px-6">
-        <h2 className="mb-8 text-3xl font-bold" style={{ color: textColor, textAlign: "inherit" }}>
+        <h2 className="mb-8 text-3xl font-bold" style={{ color: textColor, textAlign: "inherit", ...getHeadingStyle(section.style) }}>
           {title}
         </h2>
         <div className="flex h-72 items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50">

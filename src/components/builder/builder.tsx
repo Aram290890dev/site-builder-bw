@@ -49,9 +49,7 @@ import {
   LayoutGrid,
   FileText,
   ShoppingCart,
-  MoreHorizontal,
-  Pencil,
-  Trash2,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import type { BuilderPage } from "@/types/builder";
@@ -123,6 +121,48 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
       setSaved(false);
     },
     [currentPage, selectedId]
+  );
+
+  const duplicateSection = useCallback(
+    (sectionId: string) => {
+      if (!currentPage) return;
+      setConfig((prev) => ({
+        ...prev,
+        pages: prev.pages.map((p) => {
+          if (p.id !== currentPage.id) return p;
+          const idx = p.sections.findIndex((s) => s.id === sectionId);
+          if (idx === -1) return p;
+          const original = p.sections[idx];
+          const clone: Section = {
+            ...JSON.parse(JSON.stringify(original)),
+            id: `${original.type}-${Date.now()}`,
+          };
+          const updated = [...p.sections];
+          updated.splice(idx + 1, 0, clone);
+          return { ...p, sections: updated };
+        }),
+      }));
+      setSaved(false);
+    },
+    [currentPage]
+  );
+
+  const toggleHideSection = useCallback(
+    (sectionId: string) => {
+      setConfig((prev) => ({
+        ...prev,
+        pages: prev.pages.map((p) => ({
+          ...p,
+          sections: p.sections.map((s) =>
+            s.id === sectionId
+              ? { ...s, style: { ...s.style, hidden: !s.style?.hidden } }
+              : s
+          ),
+        })),
+      }));
+      setSaved(false);
+    },
+    []
   );
 
   const updateSection = useCallback(
@@ -355,46 +395,50 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
         </div>
       </div>
 
-      {/* Page tabs */}
-      <div className="flex items-center gap-1 border-b border-neutral-200 bg-neutral-50 px-4">
-        {/* Custom pages */}
-        {config.pages.map((p) => (
-          <PageTab
-            key={p.id}
-            page={p}
-            isActive={activeTab.type === "page" && activeTab.pageId === p.id}
-            isHome={p.slug === "/"}
-            onSelect={() => { setActiveTab({ type: "page", pageId: p.id }); setSelectedId(null); }}
-            onRename={(name) => renamePage(p.id, name)}
-            onDelete={() => deletePage(p.id)}
-          />
-        ))}
+      {/* Page navigation */}
+      <div className="flex items-center border-b border-neutral-200 bg-white px-4 py-2">
+        {/* Pages group */}
+        <div className="flex items-center gap-1.5">
+          <span className="mr-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-300">Pages</span>
+          {config.pages.map((p) => (
+            <PageTab
+              key={p.id}
+              page={p}
+              isActive={activeTab.type === "page" && activeTab.pageId === p.id}
+              isHome={p.slug === "/"}
+              onSelect={() => { setActiveTab({ type: "page", pageId: p.id }); setSelectedId(null); }}
+              onRename={(name) => renamePage(p.id, name)}
+              onDelete={() => deletePage(p.id)}
+            />
+          ))}
+          <PageManager existingPages={config.pages} onAddPage={addPage} />
+        </div>
 
-        {/* Add page */}
-        <PageManager existingPages={config.pages} onAddPage={addPage} />
+        {/* Divider */}
+        <div className="mx-4 h-5 w-px bg-neutral-200" />
 
-        {/* Separator */}
-        <div className="mx-1 h-5 w-px bg-neutral-200" />
-
-        {/* Template tabs */}
-        {([
-          { template: "listing" as const, label: "Listings", icon: LayoutGrid },
-          { template: "detail" as const, label: "Property Detail", icon: FileText },
-          { template: "checkout" as const, label: "Checkout", icon: ShoppingCart },
-        ]).map(({ template, label, icon: Icon }) => (
-          <button
-            key={template}
-            onClick={() => { setActiveTab({ type: "template", template }); setSelectedId(null); }}
-            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors ${
-              activeTab.type === "template" && activeTab.template === template
-                ? "border-b-2 border-indigo-600 text-indigo-600"
-                : "text-neutral-500 hover:text-neutral-700"
-            }`}
-          >
-            <Icon className="size-3.5" />
-            {label}
-          </button>
-        ))}
+        {/* Templates group */}
+        <div className="flex items-center gap-1.5">
+          <span className="mr-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-300">Templates</span>
+          {([
+            { template: "listing" as const, label: "Listings", icon: LayoutGrid },
+            { template: "detail" as const, label: "Property Detail", icon: FileText },
+            { template: "checkout" as const, label: "Checkout", icon: ShoppingCart },
+          ]).map(({ template, label, icon: Icon }) => (
+            <button
+              key={template}
+              onClick={() => { setActiveTab({ type: "template", template }); setSelectedId(null); }}
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
+                activeTab.type === "template" && activeTab.template === template
+                  ? "bg-indigo-50 text-indigo-700 shadow-sm ring-1 ring-indigo-200"
+                  : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700"
+              }`}
+            >
+              <Icon className="size-3.5" />
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Builder body */}
@@ -420,6 +464,8 @@ export function Builder({ siteId, siteName, siteSubdomain, initialConfig }: Buil
                   selectedId={selectedId}
                   onSelect={selectSection}
                   onRemove={removeSection}
+                  onDuplicate={duplicateSection}
+                  onToggleHide={toggleHideSection}
                   onUpdate={updateSection}
                   isEmpty={currentPage.sections.length === 0}
                 />
@@ -469,6 +515,8 @@ function CanvasDropZone({
   selectedId,
   onSelect,
   onRemove,
+  onDuplicate,
+  onToggleHide,
   onUpdate,
   isEmpty,
 }: {
@@ -476,6 +524,8 @@ function CanvasDropZone({
   selectedId: string | null;
   onSelect: (id: string) => void;
   onRemove: (id: string) => void;
+  onDuplicate: (id: string) => void;
+  onToggleHide: (id: string) => void;
   onUpdate: (id: string, data: Record<string, unknown>) => void;
   isEmpty: boolean;
 }) {
@@ -511,6 +561,8 @@ function CanvasDropZone({
                 isSelected={section.id === selectedId}
                 onSelect={onSelect}
                 onRemove={onRemove}
+                onDuplicate={onDuplicate}
+                onToggleHide={onToggleHide}
                 onUpdate={onUpdate}
               />
             ))}
@@ -561,7 +613,7 @@ function TemplateView({
   }
 }
 
-/* ─── Page Tab with Context Menu ─── */
+/* ─── Page Tab (pill style, double-click to rename, hover X to delete) ─── */
 
 function PageTab({
   page,
@@ -578,7 +630,6 @@ function PageTab({
   onRename: (name: string) => void;
   onDelete: () => void;
 }) {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [nameValue, setNameValue] = useState(page.name);
 
@@ -601,54 +652,39 @@ function PageTab({
           if (e.key === "Enter") commitRename();
           if (e.key === "Escape") { setNameValue(page.name); setRenaming(false); }
         }}
-        className="w-24 rounded border border-indigo-300 bg-white px-2 py-1 text-xs font-medium outline-none"
+        className="w-24 rounded-lg border border-indigo-300 bg-white px-2.5 py-1.5 text-xs font-medium outline-none ring-2 ring-indigo-100"
       />
     );
   }
 
   return (
-    <div className="relative flex items-center">
+    <div className="group relative">
       <button
         onClick={onSelect}
-        className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors ${
+        onDoubleClick={(e) => {
+          if (isHome) return;
+          e.preventDefault();
+          setNameValue(page.name);
+          setRenaming(true);
+        }}
+        className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
           isActive
-            ? "border-b-2 border-indigo-600 text-indigo-600"
-            : "text-neutral-500 hover:text-neutral-700"
-        }`}
+            ? "bg-indigo-50 text-indigo-700 shadow-sm ring-1 ring-indigo-200"
+            : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700"
+        } ${!isHome ? "pr-6" : ""}`}
       >
-        <Home className="size-3.5" />
+        {isHome && <Home className="size-3.5" />}
         {page.name}
       </button>
 
       {!isHome && (
         <button
-          onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
-          className="ml-[-4px] rounded p-0.5 text-neutral-400 transition-colors hover:text-neutral-600"
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          className="absolute right-1 top-1/2 flex size-4 -translate-y-1/2 items-center justify-center rounded opacity-0 transition-all hover:bg-red-100 hover:text-red-600 group-hover:opacity-100"
+          title="Remove page"
         >
-          <MoreHorizontal className="size-3.5" />
+          <X className="size-3 text-neutral-400 hover:text-red-600" />
         </button>
-      )}
-
-      {menuOpen && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-          <div className="absolute left-0 top-full z-50 mt-1 w-36 rounded-lg border border-neutral-200 bg-white py-1 shadow-lg">
-            <button
-              onClick={() => { setMenuOpen(false); setRenaming(true); setNameValue(page.name); }}
-              className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-50"
-            >
-              <Pencil className="size-3" />
-              Rename
-            </button>
-            <button
-              onClick={() => { setMenuOpen(false); onDelete(); }}
-              className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50"
-            >
-              <Trash2 className="size-3" />
-              Delete
-            </button>
-          </div>
-        </>
       )}
     </div>
   );

@@ -16,6 +16,11 @@ import {
   AlignRight,
   Type,
   Paintbrush,
+  Wand2,
+  ArrowDown,
+  ArrowRight as ArrowRightIcon,
+  ArrowDownRight,
+  ArrowDownLeft,
 } from "lucide-react";
 
 interface SectionEditorProps {
@@ -31,7 +36,7 @@ export function SectionEditor({
   onUpdateStyle,
   onClose,
 }: SectionEditorProps) {
-  const [tab, setTab] = useState<"content" | "style">("content");
+  const [tab, setTab] = useState<"content" | "style" | "advanced">("content");
   const def = SECTION_DEFINITIONS[section.type];
 
   function updateData(key: string, value: unknown) {
@@ -81,13 +86,26 @@ export function SectionEditor({
           <Paintbrush className="size-3.5" />
           Style
         </button>
+        <button
+          onClick={() => setTab("advanced")}
+          className={`flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors ${
+            tab === "advanced"
+              ? "border-b-2 border-indigo-600 text-indigo-600"
+              : "text-neutral-400 hover:text-neutral-600"
+          }`}
+        >
+          <Wand2 className="size-3.5" />
+          Advanced
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
         {tab === "content" ? (
           <ContentEditor section={section} update={updateData} />
-        ) : (
+        ) : tab === "style" ? (
           <StyleEditor style={section.style ?? {}} update={updateStyle} />
+        ) : (
+          <AdvancedEditor style={section.style ?? {}} update={updateStyle} />
         )}
       </div>
     </div>
@@ -338,6 +356,415 @@ function StyleEditor({
             />
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Advanced Editor ─── */
+
+function AdvancedEditor({
+  style,
+  update,
+}: {
+  style: SectionStyle;
+  update: (s: Partial<SectionStyle>) => void;
+}) {
+  const gradient = style.gradient;
+
+  return (
+    <div className="space-y-5">
+      {/* Typography */}
+      <div className="space-y-3">
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">Typography</div>
+
+        <div className="space-y-2">
+          <Label className="text-xs text-neutral-500">Heading Size</Label>
+          <div className="flex gap-1.5">
+            {(["sm", "md", "lg", "xl", "2xl"] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => update({ headingSize: v })}
+                className={`flex h-8 flex-1 items-center justify-center rounded-md border text-[10px] font-bold transition-colors ${
+                  (style.headingSize ?? "lg") === v
+                    ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                    : "border-neutral-200 text-neutral-500 hover:border-neutral-300"
+                }`}
+                style={{ fontSize: { sm: 10, md: 11, lg: 12, xl: 14, "2xl": 16 }[v] }}
+              >
+                Aa
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-xs text-neutral-500">Font Weight</Label>
+          <div className="grid grid-cols-3 gap-1.5">
+            {(["light", "normal", "medium", "semibold", "bold", "black"] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => update({ headingWeight: v })}
+                className={`h-8 rounded-md border text-[10px] transition-colors ${
+                  (style.headingWeight ?? "bold") === v
+                    ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                    : "border-neutral-200 text-neutral-500 hover:border-neutral-300"
+                }`}
+                style={{ fontWeight: { light: 300, normal: 400, medium: 500, semibold: 600, bold: 700, black: 900 }[v] }}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-xs text-neutral-500">Letter Spacing</Label>
+          <div className="flex gap-1.5">
+            {(["tighter", "tight", "normal", "wide", "wider"] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => update({ letterSpacing: v })}
+                className={`flex h-8 flex-1 items-center justify-center rounded-md border text-[10px] transition-colors ${
+                  (style.letterSpacing ?? "normal") === v
+                    ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                    : "border-neutral-200 text-neutral-500 hover:border-neutral-300"
+                }`}
+              >
+                {v.slice(0, 2).toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-xs text-neutral-500">Font Family</Label>
+          <div className="grid grid-cols-2 gap-1.5">
+            {(["sans", "serif", "mono", "display"] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => update({ fontOverride: v })}
+                className={`h-8 rounded-md border text-[10px] transition-colors ${
+                  (style.fontOverride ?? "sans") === v
+                    ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                    : "border-neutral-200 text-neutral-500 hover:border-neutral-300"
+                }`}
+                style={{ fontFamily: { sans: "system-ui, sans-serif", serif: "Georgia, serif", mono: "monospace", display: "Georgia, serif" }[v] }}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Button Styling */}
+      <div className="space-y-3">
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">Button</div>
+
+        <div className="space-y-2">
+          <Label className="text-xs text-neutral-500">Shape</Label>
+          <div className="flex gap-1.5">
+            {(["rounded", "pill", "square"] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => update({ buttonShape: v })}
+                className={`flex h-8 flex-1 items-center justify-center border text-[10px] font-medium transition-colors ${
+                  (style.buttonShape ?? "rounded") === v
+                    ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                    : "border-neutral-200 text-neutral-500 hover:border-neutral-300"
+                }`}
+                style={{ borderRadius: { rounded: 6, pill: 999, square: 0 }[v] }}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-xs text-neutral-500">Variant</Label>
+          <div className="flex gap-1.5">
+            {(["solid", "outline", "ghost"] as const).map((v) => {
+              const accent = style.accentColor ?? "#4f46e5";
+              const btnStyle = v === "solid"
+                ? { backgroundColor: accent, color: "#fff", border: "none" }
+                : v === "outline"
+                ? { backgroundColor: "transparent", color: accent, border: `1.5px solid ${accent}` }
+                : { backgroundColor: "transparent", color: accent, border: "1.5px solid transparent" };
+              return (
+                <button
+                  key={v}
+                  onClick={() => update({ buttonVariant: v })}
+                  className={`flex h-8 flex-1 items-center justify-center rounded-md text-[10px] font-medium transition-colors ${
+                    (style.buttonVariant ?? "solid") === v
+                      ? "ring-2 ring-indigo-200"
+                      : ""
+                  }`}
+                  style={btnStyle}
+                >
+                  {v}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-xs text-neutral-500">Size</Label>
+          <div className="flex gap-1.5">
+            {(["sm", "md", "lg"] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => update({ buttonSize: v })}
+                className={`flex flex-1 items-center justify-center rounded-md border text-[10px] font-medium transition-colors ${
+                  (style.buttonSize ?? "md") === v
+                    ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                    : "border-neutral-200 text-neutral-500 hover:border-neutral-300"
+                }`}
+                style={{ height: { sm: 28, md: 32, lg: 38 }[v] }}
+              >
+                {v.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Animations */}
+      <div className="space-y-3">
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">Animation</div>
+
+        <div className="space-y-2">
+          <Label className="text-xs text-neutral-500">Entrance Effect</Label>
+          <div className="grid grid-cols-3 gap-1.5">
+            {(["none", "fade-in", "slide-up", "slide-left", "slide-right", "zoom-in"] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => update({ animation: v })}
+                className={`h-8 rounded-md border text-[10px] transition-colors ${
+                  (style.animation ?? "none") === v
+                    ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                    : "border-neutral-200 text-neutral-500 hover:border-neutral-300"
+                }`}
+              >
+                {v === "none" ? "None" : v.split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ")}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {style.animation && style.animation !== "none" && (
+          <div className="space-y-2">
+            <Label className="text-xs text-neutral-500">Speed</Label>
+            <div className="flex gap-1.5">
+              {(["fast", "normal", "slow"] as const).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => update({ animationSpeed: v })}
+                  className={`flex h-8 flex-1 items-center justify-center rounded-md border text-[10px] font-medium transition-colors ${
+                    (style.animationSpeed ?? "normal") === v
+                      ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                      : "border-neutral-200 text-neutral-500 hover:border-neutral-300"
+                  }`}
+                >
+                  {v}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <Separator />
+
+      {/* Gradient */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">Gradient</div>
+          <button
+            onClick={() => {
+              if (gradient) {
+                update({ gradient: undefined });
+              } else {
+                update({ gradient: { from: "#4f46e5", to: "#7c3aed", direction: "to-br" } });
+              }
+            }}
+            className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors ${
+              gradient ? "bg-indigo-100 text-indigo-700" : "bg-neutral-100 text-neutral-500"
+            }`}
+          >
+            {gradient ? "ON" : "OFF"}
+          </button>
+        </div>
+
+        {gradient && (
+          <>
+            <div className="space-y-2">
+              <Label className="text-xs text-neutral-500">Direction</Label>
+              <div className="flex gap-1.5">
+                {([
+                  { value: "to-b" as const, icon: ArrowDown, label: "Down" },
+                  { value: "to-r" as const, icon: ArrowRightIcon, label: "Right" },
+                  { value: "to-br" as const, icon: ArrowDownRight, label: "Diagonal" },
+                  { value: "to-bl" as const, icon: ArrowDownLeft, label: "Diagonal" },
+                ]).map(({ value, icon: Icon }) => (
+                  <button
+                    key={value}
+                    onClick={() => update({ gradient: { ...gradient, direction: value } })}
+                    className={`flex h-8 flex-1 items-center justify-center rounded-md border transition-colors ${
+                      gradient.direction === value
+                        ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                        : "border-neutral-200 text-neutral-500 hover:border-neutral-300"
+                    }`}
+                  >
+                    <Icon className="size-3.5" />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-1 space-y-1">
+                <Label className="text-[10px] text-neutral-400">From</Label>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="color"
+                    value={gradient.from}
+                    onChange={(e) => update({ gradient: { ...gradient, from: e.target.value } })}
+                    className="h-7 w-7 cursor-pointer rounded border border-neutral-200"
+                  />
+                  <Input
+                    value={gradient.from}
+                    onChange={(e) => update({ gradient: { ...gradient, from: (e.target as HTMLInputElement).value } })}
+                    className="flex-1 font-mono text-[10px]"
+                  />
+                </div>
+              </div>
+              <div className="flex-1 space-y-1">
+                <Label className="text-[10px] text-neutral-400">To</Label>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="color"
+                    value={gradient.to}
+                    onChange={(e) => update({ gradient: { ...gradient, to: e.target.value } })}
+                    className="h-7 w-7 cursor-pointer rounded border border-neutral-200"
+                  />
+                  <Input
+                    value={gradient.to}
+                    onChange={(e) => update({ gradient: { ...gradient, to: (e.target as HTMLInputElement).value } })}
+                    className="flex-1 font-mono text-[10px]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="h-8 rounded-lg border border-neutral-200"
+              style={{
+                background: `linear-gradient(${
+                  { "to-b": "to bottom", "to-r": "to right", "to-br": "to bottom right", "to-bl": "to bottom left" }[gradient.direction]
+                }, ${gradient.from}, ${gradient.to})`,
+              }}
+            />
+          </>
+        )}
+      </div>
+
+      <Separator />
+
+      {/* Section Width */}
+      <div className="space-y-3">
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">Layout</div>
+        <div className="space-y-2">
+          <Label className="text-xs text-neutral-500">Section Width</Label>
+          <div className="flex gap-1.5">
+            {(["full", "contained", "narrow"] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => update({ sectionWidth: v })}
+                className={`flex h-8 flex-1 items-center justify-center rounded-md border text-[10px] font-medium transition-colors ${
+                  (style.sectionWidth ?? "contained") === v
+                    ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                    : "border-neutral-200 text-neutral-500 hover:border-neutral-300"
+                }`}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Divider */}
+      <div className="space-y-3">
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">Section Divider</div>
+        <div className="space-y-2">
+          <Label className="text-xs text-neutral-500">Bottom Divider</Label>
+          <div className="grid grid-cols-5 gap-1.5">
+            {(["none", "line", "wave", "angle", "dots"] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => update({ divider: v })}
+                className={`flex h-10 flex-col items-center justify-center gap-0.5 rounded-md border text-[9px] transition-colors ${
+                  (style.divider ?? "none") === v
+                    ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                    : "border-neutral-200 text-neutral-500 hover:border-neutral-300"
+                }`}
+              >
+                {v === "none" && <span className="text-xs">—</span>}
+                {v === "line" && <div className="h-px w-6 bg-current" />}
+                {v === "wave" && <svg width="24" height="6" viewBox="0 0 24 6"><path d="M0 3 Q6 0 12 3 T24 3" fill="none" stroke="currentColor" strokeWidth="1"/></svg>}
+                {v === "angle" && <svg width="24" height="6" viewBox="0 0 24 6"><path d="M0 0 L12 6 L24 0" fill="none" stroke="currentColor" strokeWidth="1"/></svg>}
+                {v === "dots" && <div className="flex gap-1">{[0,1,2].map(i => <div key={i} className="size-1 rounded-full bg-current"/>)}</div>}
+                <span>{v}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {style.divider && style.divider !== "none" && (
+          <div className="space-y-2">
+            <Label className="text-xs text-neutral-500">Divider Color</Label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={style.dividerColor ?? "#e5e5e5"}
+                onChange={(e) => update({ dividerColor: e.target.value })}
+                className="h-7 w-7 cursor-pointer rounded border border-neutral-200"
+              />
+              <Input
+                value={style.dividerColor ?? "#e5e5e5"}
+                onChange={(e) => update({ dividerColor: (e.target as HTMLInputElement).value })}
+                className="flex-1 font-mono text-xs"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <Separator />
+
+      {/* Custom CSS */}
+      <div className="space-y-3">
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">Custom CSS</div>
+        <p className="text-[10px] text-neutral-400">
+          Scoped to this section only. Use standard CSS properties.
+        </p>
+        <textarea
+          value={style.customCSS ?? ""}
+          onChange={(e) => update({ customCSS: e.target.value })}
+          placeholder={`color: red;\nfont-style: italic;`}
+          rows={4}
+          className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 font-mono text-[11px] outline-none transition-colors focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+          spellCheck={false}
+        />
       </div>
     </div>
   );

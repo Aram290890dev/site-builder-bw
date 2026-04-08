@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from "react";
 import type { Section } from "@/types/builder";
+import { getHeadingStyle, getButtonStyle } from "./section-renderer";
 
 interface Props {
   section: Section;
@@ -19,7 +20,7 @@ export function ContactSection({ section, accent, textColor, wrapperStyle }: Pro
   return (
     <section className="py-16" style={wrapperStyle}>
       <div className="mx-auto max-w-xl px-6">
-        <h2 className="mb-2 text-3xl font-bold" style={{ color: textColor, textAlign: "inherit" }}>
+        <h2 className="mb-2 text-3xl font-bold" style={{ color: textColor, textAlign: "inherit", ...getHeadingStyle(section.style) }}>
           {title}
         </h2>
         {/* Contact info bar */}
@@ -57,8 +58,8 @@ export function ContactSection({ section, accent, textColor, wrapperStyle }: Pro
           />
           <button
             type="submit"
-            className="w-full rounded-lg py-3 text-sm font-semibold text-white transition-transform hover:scale-[1.01]"
-            style={{ backgroundColor: accent }}
+            className="w-full py-3 text-sm font-semibold transition-transform hover:scale-[1.01]"
+            style={{ backgroundColor: accent, color: "#ffffff", borderRadius: "0.5rem", ...getButtonStyle(section.style, accent) }}
           >
             Send Message
           </button>
