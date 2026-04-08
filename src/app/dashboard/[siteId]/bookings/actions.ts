@@ -1,9 +1,12 @@
 "use server";
 
 import { prisma } from "@/lib/db";
+import { requireSiteOwner } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 
 export async function getBookingsForSite(siteId: string) {
+  await requireSiteOwner(siteId);
+
   return prisma.booking.findMany({
     where: { siteId },
     include: { property: { select: { name: true, images: true } } },
@@ -12,6 +15,8 @@ export async function getBookingsForSite(siteId: string) {
 }
 
 export async function getSiteBasicForBookings(siteId: string) {
+  await requireSiteOwner(siteId);
+
   return prisma.site.findUnique({
     where: { id: siteId },
     select: { id: true, name: true, subdomain: true },
@@ -23,6 +28,8 @@ export async function updateBookingStatus(
   siteId: string,
   status: "CONFIRMED" | "CANCELLED"
 ) {
+  await requireSiteOwner(siteId);
+
   await prisma.booking.update({
     where: { id: bookingId },
     data: { status },

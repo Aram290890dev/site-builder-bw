@@ -88,6 +88,19 @@ A complete guide to every technology used in this project, what it does, and why
 
 ---
 
+## Authentication
+
+### Auth.js (NextAuth v5)
+- **What:** Authentication library for Next.js. Handles sessions, JWT tokens, providers, and route protection.
+- **Why:** Tight integration with Next.js App Router and middleware. Supports Credentials provider (email/password) and can easily add OAuth (Google, GitHub) later.
+- **Key files:** `src/lib/auth.ts` (config), `src/app/api/auth/[...nextauth]/route.ts` (handler), `src/middleware.ts` (route protection).
+
+### bcryptjs
+- **What:** Password hashing library (pure JS implementation of bcrypt).
+- **Why:** Hashes user passwords before storing in DB. Used in register action and login verification.
+
+---
+
 ## Utilities
 
 ### dotenv
@@ -108,6 +121,13 @@ src/
 │   ├── page.tsx                  # Marketing landing page
 │   ├── layout.tsx                # Root layout (html, body, fonts)
 │   ├── globals.css               # Tailwind imports + theme tokens
+│   ├── (auth)/                   # Auth pages (login, register)
+│   │   ├── login/page.tsx        # Sign-in page
+│   │   └── register/
+│   │       ├── page.tsx          # Registration page
+│   │       └── actions.ts        # Register server action
+│   ├── api/auth/[...nextauth]/
+│   │   └── route.ts             # Auth.js API route handler
 │   ├── dashboard/                # Owner dashboard
 │   │   ├── page.tsx              # Site list (Edit + View Site buttons)
 │   │   ├── layout.tsx            # Dashboard layout (header)
@@ -160,8 +180,10 @@ src/
 │
 ├── lib/
 │   ├── db/index.ts               # Prisma client singleton
+│   ├── auth.ts                   # Auth.js configuration (providers, callbacks)
+│   ├── session.ts                # requireUser(), requireSiteOwner() helpers
 │   ├── utils.ts                  # cn() helper
-│   ├── constants.ts              # Demo user email constant
+│   ├── constants.ts              # App-wide constants
 │   └── config-migrate.ts         # Migrates old flat config → multi-page config
 │
 ├── types/

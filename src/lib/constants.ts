@@ -1,2 +1,2 @@
-// Hardcoded demo user ID until auth is implemented
-export const DEMO_USER_EMAIL = "demo@bookwise.dev";
+// App-wide constants
+export const APP_NAME = "BookWise";

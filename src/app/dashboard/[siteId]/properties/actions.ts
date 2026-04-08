@@ -1,9 +1,12 @@
 "use server";
 
 import { prisma } from "@/lib/db";
+import { requireSiteOwner } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 
 export async function getPropertiesForSite(siteId: string) {
+  await requireSiteOwner(siteId);
+
   return prisma.property.findMany({
     where: { siteId },
     orderBy: { createdAt: "desc" },
@@ -14,6 +17,8 @@ export async function getPropertiesForSite(siteId: string) {
 }
 
 export async function getSiteBasic(siteId: string) {
+  await requireSiteOwner(siteId);
+
   return prisma.site.findUnique({
     where: { id: siteId },
     select: { id: true, name: true, subdomain: true },
@@ -32,6 +37,8 @@ export interface PropertyFormData {
 }
 
 export async function createProperty(siteId: string, data: PropertyFormData) {
+  await requireSiteOwner(siteId);
+
   await prisma.property.create({
     data: {
       name: data.name,
@@ -55,6 +62,8 @@ export async function updateProperty(
   siteId: string,
   data: PropertyFormData
 ) {
+  await requireSiteOwner(siteId);
+
   await prisma.property.update({
     where: { id: propertyId },
     data: {
@@ -74,6 +83,8 @@ export async function updateProperty(
 }
 
 export async function deleteProperty(propertyId: string, siteId: string) {
+  await requireSiteOwner(siteId);
+
   await prisma.property.delete({ where: { id: propertyId } });
   revalidatePath(`/dashboard/${siteId}/properties`);
   return { success: true };

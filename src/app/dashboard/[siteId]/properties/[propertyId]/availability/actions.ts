@@ -1,9 +1,12 @@
 "use server";
 
 import { prisma } from "@/lib/db";
+import { requireSiteOwner } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 
-export async function getPropertyForAvailability(propertyId: string) {
+export async function getPropertyForAvailability(propertyId: string, siteId: string) {
+  await requireSiteOwner(siteId);
+
   return prisma.property.findUnique({
     where: { id: propertyId },
     select: { id: true, name: true, price: true, currency: true, siteId: true },
@@ -45,6 +48,8 @@ export async function toggleDateAvailability(
   available: boolean,
   customPrice?: number | null
 ) {
+  await requireSiteOwner(siteId);
+
   const date = new Date(dateStr + "T00:00:00.000Z");
 
   await prisma.availability.upsert({
@@ -65,6 +70,8 @@ export async function bulkToggleDates(
   dates: string[],
   available: boolean
 ) {
+  await requireSiteOwner(siteId);
+
   for (const dateStr of dates) {
     const date = new Date(dateStr + "T00:00:00.000Z");
     await prisma.availability.upsert({

@@ -10,7 +10,7 @@ export default async function AvailabilityPage({
   params: Promise<{ siteId: string; propertyId: string }>;
 }) {
   const { siteId, propertyId } = await params;
-  const property = await getPropertyForAvailability(propertyId);
+  const property = await getPropertyForAvailability(propertyId, siteId);
 
   if (!property) return notFound();
 

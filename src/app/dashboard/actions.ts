@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { DEMO_USER_EMAIL } from "@/lib/constants";
+import { requireUser } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import {
   DEFAULT_LISTING_SETTINGS,
@@ -10,8 +10,10 @@ import {
 } from "@/types/builder";
 
 export async function getSites() {
-  const user = await prisma.user.findUnique({
-    where: { email: DEMO_USER_EMAIL },
+  const user = await requireUser();
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
     include: {
       sites: {
         orderBy: { updatedAt: "desc" },
@@ -20,23 +22,17 @@ export async function getSites() {
     },
   });
 
-  return user?.sites ?? [];
+  return dbUser?.sites ?? [];
 }
 
 export async function createSite(formData: FormData) {
+  const user = await requireUser();
+
   const name = formData.get("name") as string;
   const subdomain = formData.get("subdomain") as string;
 
   if (!name || !subdomain) {
     return { error: "Name and subdomain are required" };
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { email: DEMO_USER_EMAIL },
-  });
-
-  if (!user) {
-    return { error: "User not found" };
   }
 
   const existing = await prisma.site.findUnique({
@@ -93,6 +89,17 @@ export async function createSite(formData: FormData) {
 }
 
 export async function deleteSite(siteId: string) {
+  const user = await requireUser();
+
+  const site = await prisma.site.findUnique({
+    where: { id: siteId },
+    select: { ownerId: true },
+  });
+
+  if (!site || site.ownerId !== user.id) {
+    return { error: "Not authorized" };
+  }
+
   await prisma.site.delete({ where: { id: siteId } });
   revalidatePath("/dashboard");
 }

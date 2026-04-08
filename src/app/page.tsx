@@ -49,7 +49,13 @@ function Navbar() {
             How It Works
           </Link>
           <Link
-            href="/dashboard"
+            href="/login"
+            className="mr-2 text-sm text-neutral-500 transition-colors hover:text-black"
+          >
+            Sign In
+          </Link>
+          <Link
+            href="/register"
             className="inline-flex h-9 items-center gap-1.5 rounded-full bg-indigo-600 px-4 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
           >
             Get Started
@@ -86,7 +92,7 @@ function Hero() {
             </p>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
-                href="/dashboard"
+                href="/register"
                 className="inline-flex h-12 items-center gap-2 rounded-full bg-indigo-600 px-8 text-base font-medium text-white transition-colors hover:bg-indigo-700"
               >
                 Start Building — It&apos;s Free
@@ -329,7 +335,7 @@ function CTA() {
         </p>
         <div className="mt-10">
           <Link
-            href="/dashboard"
+            href="/register"
             className="inline-flex h-12 items-center gap-2 rounded-full bg-indigo-600 px-8 text-base font-medium text-white shadow-lg shadow-indigo-200 transition-colors hover:bg-indigo-700"
           >
             Get Started for Free

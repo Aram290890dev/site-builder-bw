@@ -1,6 +1,7 @@
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
+import { hash } from "bcryptjs";
 import "dotenv/config";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -8,13 +9,15 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
+  const hashedPassword = await hash("demo123", 12);
+
   const user = await prisma.user.upsert({
     where: { email: "demo@bookwise.dev" },
-    update: {},
+    update: { password: hashedPassword },
     create: {
       email: "demo@bookwise.dev",
       name: "Demo Owner",
-      password: "demo123",
+      password: hashedPassword,
     },
   });
 

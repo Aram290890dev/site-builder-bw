@@ -230,45 +230,38 @@ Owners can now create unlimited drag-and-drop pages beyond just "Home".
 
 ---
 
+### 9. Authentication
+**Files:** `src/lib/auth.ts`, `src/lib/session.ts`, `src/middleware.ts`, `src/app/(auth)/`
+
+Real authentication using **Auth.js (NextAuth v5)** with email/password credentials.
+
+**How it works:**
+- **Auth.js** configured with Credentials provider — validates email + bcrypt-hashed password against the `User` model.
+- **JWT strategy** — session stored in a signed cookie, no database sessions needed.
+- **Register page** (`/register`) — creates account with name, email, hashed password, then auto-signs in and redirects to dashboard.
+- **Login page** (`/login`) — email/password form, redirects to dashboard on success.
+- **Middleware** (`src/middleware.ts`) — protects all `/dashboard` routes (redirects to `/login` if unauthenticated). Also redirects logged-in users away from `/login` and `/register` to `/dashboard`.
+- **Session helpers** (`src/lib/session.ts`):
+  - `requireUser()` — gets current session user or throws "Unauthorized".
+  - `requireSiteOwner(siteId)` — verifies the current user owns the given site or throws "Forbidden".
+- **All dashboard actions** now use `requireUser()` or `requireSiteOwner()` instead of the old hardcoded demo user. This means every server action verifies ownership before reading/writing data.
+- **User menu** in dashboard header — shows initials + name, dropdown with email and "Sign out" button.
+- **Landing page** updated — "Get Started" buttons link to `/register`, navbar has "Sign In" link to `/login`.
+- **Seed script** updated — demo user's password is now bcrypt-hashed.
+
+---
+
 ## What's NOT Built Yet
 
 ### High Priority (Next Steps)
 
-1. **Property management CRUD** — Currently properties only exist via seed data. Need:
-   - Dashboard page per site to add/edit/delete properties.
-   - Image upload (Cloudinary or S3).
-   - Amenities editor (add/remove amenities).
-   - Location picker (map integration for lat/lng).
-   - This is the most important next step — owners need to manage their own property data.
+1. **Publish/unpublish** — Toggle the `published` flag. Only published sites should be publicly visible. Currently all sites render regardless of status.
 
-2. **Booking flow (functional)** — The checkout page renders a form, but nothing happens on submit. Need:
-   - Server action to create a `Booking` record with status PENDING.
-   - Date validation (check availability, prevent double bookings).
-   - Confirmation page / success state after booking.
-   - Owner sees bookings in dashboard with status management (confirm/cancel).
-   - No payment for MVP — just reservation.
+2. **Theme system** — The `SiteTheme` (primary color, font family) is partially applied. Need a richer theme settings panel in the builder with font picker and global color scheme.
 
-3. **Availability & Calendar** — Let owners manage property availability.
-   - Calendar UI in dashboard to block/unblock dates.
-   - Custom pricing per date (override base price).
-   - Public calendar on detail page reads from `Availability` model.
-   - Interactive date picker on detail/checkout pages (currently static "Select date" text).
-   - Currently the calendar shows hardcoded sample blocked dates.
-
-4. **Authentication** — Replace the hardcoded demo user with real auth.
-   - Plan: NextAuth.js (Auth.js) with email/password + optional Google OAuth.
-   - Login, register, protected routes.
-   - Middleware to protect `/dashboard` routes.
+3. **Responsive public site** — Public site pages use responsive layouts but could be improved, especially the navbar (needs a mobile hamburger menu for sites with many pages).
 
 ### Medium Priority
-
-5. **Theme system** — The `SiteTheme` (primary color, font family) exists in config but isn't applied globally to public site pages yet. Need a theme settings panel in the builder with font picker and global color scheme.
-
-6. **Publish/unpublish** — Toggle the `published` flag. Only published sites should be publicly visible. Currently all sites render regardless of status.
-
-7. **Image upload** — Currently property images reference local paths. Need Cloudinary or S3 integration for real image uploads with drag-and-drop.
-
-8. **Responsive public site** — Public site pages use responsive layouts but could be improved, especially the navbar (needs a mobile hamburger menu for sites with many pages).
 
 ### Lower Priority
 
@@ -297,5 +290,5 @@ Owners can now create unlimited drag-and-drop pages beyond just "Home".
 - **Server Components for public pages** — All public site pages are Server Components (zero JS to browser) except the contact form which needs `"use client"` for the form handler.
 - **shadcn/ui v4 uses Base UI** — Important: the `asChild` pattern doesn't exist. Use `render` prop instead when composing components.
 - **Prisma 7 driver adapter** — No `url` in `datasource` block. Connection is passed via `@prisma/adapter-pg` at runtime. Must use `JSON.parse(JSON.stringify(obj))` when writing complex typed objects to Prisma JSON fields (Prisma's `InputJsonValue` doesn't accept TypeScript interfaces directly).
-- **Demo user pattern** — Hardcoded `demo@bookwise.dev` in `src/lib/constants.ts` used everywhere until auth is built. Easy to find-and-replace later.
+- **Auth.js with JWT** — Uses NextAuth v5 (Auth.js) with Credentials provider and JWT sessions. Every dashboard action calls `requireUser()` or `requireSiteOwner()` before touching data. Middleware redirects unauthenticated users to `/login`.
 - **Config migration** — `migrateConfig()` in `src/lib/config-migrate.ts` upgrades old flat-section configs to the new multi-page + templates format. Run on every load (builder + public site) for backward compatibility.
