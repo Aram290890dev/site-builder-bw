@@ -6,6 +6,7 @@ import { DEFAULT_DETAIL_SETTINGS } from "@/types/builder";
 import { MapPin, Star, Users, Check, ChevronLeft } from "lucide-react";
 import { GallerySlider } from "@/components/site/gallery-slider";
 import { BookingWidget } from "@/components/site/booking-widget";
+import { AvailabilityCalendar } from "@/components/site/availability-calendar";
 import type { Metadata } from "next";
 
 const RADIUS_MAP: Record<string, string> = { none: "0", sm: "0.25rem", md: "0.5rem", lg: "0.75rem" };
@@ -51,7 +52,19 @@ export default async function PropertyDetailPage({
   const radius = RADIUS_MAP[s.cardRadius] ?? "0.75rem";
   const imgRadius = RADIUS_MAP[s.galleryImageRadius] ?? "0.5rem";
   const headingStyle: React.CSSProperties = { fontFamily: FONT_MAP[s.headingFont], color: s.textColor };
-  const blockedDays = [5, 6, 7, 15, 16];
+
+  const blockedDates = property.availability
+    .filter((a) => !a.available)
+    .map((a) => a.date.toISOString().split("T")[0]);
+
+  const bookedDates: string[] = [];
+  for (const b of property.bookings) {
+    const start = new Date(b.checkIn);
+    const end = new Date(b.checkOut);
+    for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
+      bookedDates.push(d.toISOString().split("T")[0]);
+    }
+  }
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: s.pageBgColor }}>
@@ -124,38 +137,14 @@ export default async function PropertyDetailPage({
             {s.calendarStyle === "inline" && (
               <div>
                 <h2 className="text-xl font-semibold mb-4" style={headingStyle}>Availability</h2>
-                <div className="rounded-xl border border-neutral-200 p-5" style={{ borderRadius: radius }}>
-                  <div className="grid grid-cols-7 gap-1.5 text-center">
-                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-                      <div key={d} className="py-2 text-xs font-medium" style={{ color: `${s.textColor}60` }}>{d}</div>
-                    ))}
-                    {Array.from({ length: 28 }).map((_, i) => {
-                      const blocked = blockedDays.includes(i);
-                      const isToday = i === new Date().getDate() - 1;
-                      return (
-                        <div
-                          key={i}
-                          className="flex h-10 items-center justify-center rounded-lg text-sm font-medium"
-                          style={{
-                            backgroundColor: blocked
-                              ? s.calendarBlockedColor
-                              : isToday
-                                ? s.calendarAccentColor
-                                : "transparent",
-                            color: blocked
-                              ? "#dc2626"
-                              : isToday
-                                ? "#ffffff"
-                                : s.textColor,
-                            opacity: blocked ? 0.7 : 1,
-                          }}
-                        >
-                          {i + 1}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                <AvailabilityCalendar
+                  blockedDates={blockedDates}
+                  bookedDates={bookedDates}
+                  accentColor={s.calendarAccentColor}
+                  blockedColor={s.calendarBlockedColor}
+                  textColor={s.textColor}
+                  radius={radius}
+                />
               </div>
             )}
 

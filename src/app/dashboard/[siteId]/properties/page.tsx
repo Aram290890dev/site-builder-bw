@@ -1,7 +1,7 @@
 import { getPropertiesForSite, getSiteBasic } from "./actions";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, MapPin, Users, DollarSign, Pencil, Trash2, Plus, Building2, ExternalLink } from "lucide-react";
+import { ArrowLeft, MapPin, Users, DollarSign, Pencil, Trash2, Plus, Building2, ExternalLink, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { DeletePropertyButton } from "./delete-button";
@@ -132,6 +132,13 @@ export default async function PropertiesPage({
 
                 {/* Actions */}
                 <div className="flex shrink-0 items-center gap-1">
+                  <Link
+                    href={`/dashboard/${siteId}/properties/${property.id}/availability`}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-lg")}
+                    title="Manage availability"
+                  >
+                    <CalendarDays className="size-3.5" />
+                  </Link>
                   <PropertyFormDialog
                     siteId={siteId}
                     mode="edit"

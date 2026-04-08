@@ -28,6 +28,13 @@ export async function getProperty(propertyId: string) {
         where: { date: { gte: new Date() } },
         orderBy: { date: "asc" },
       },
+      bookings: {
+        where: {
+          status: { in: ["PENDING", "CONFIRMED"] },
+          checkOut: { gt: new Date() },
+        },
+        select: { checkIn: true, checkOut: true },
+      },
     },
   });
 }
